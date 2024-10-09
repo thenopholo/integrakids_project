@@ -1,0 +1,31 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "integrakidsapp",
+          "appId": "1:593746663874:android:f5970dd1d2ea1906c09e5b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "integrakidsapp",
+          "appId": "1:593746663874:ios:b78d5a351133d140c09e5b",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "integrakidsapp",
+          "configurations": {
+            "android": "1:593746663874:android:f5970dd1d2ea1906c09e5b",
+            "ios": "1:593746663874:ios:b78d5a351133d140c09e5b",
+            "web": "1:593746663874:web:e7ee57c61ce248a8c09e5b"
+          }
+        }
+      }
+    }
+  }
+}

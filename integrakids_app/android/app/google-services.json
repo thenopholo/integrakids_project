@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "593746663874",
+    "project_id": "integrakidsapp",
+    "storage_bucket": "integrakidsapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593746663874:android:f5970dd1d2ea1906c09e5b",
+        "android_client_info": {
+          "package_name": "com.example.integrakids_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQUEUUfVIuWHwz56807vfiavJWsvQeL5U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
