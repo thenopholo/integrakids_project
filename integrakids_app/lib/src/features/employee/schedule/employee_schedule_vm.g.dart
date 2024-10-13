@@ -7,7 +7,7 @@ part of 'employee_schedule_vm.dart';
 // **************************************************************************
 
 String _$employeeScheduleVmHash() =>
-    r'4d1069cca8363baa63fa89e367b97f02e2c84ca6';
+    r'7fe330801e4688c9ebd4ce52a40fd60e73e3384f';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -32,11 +32,11 @@ class _SystemHash {
 
 abstract class _$EmployeeScheduleVm
     extends BuildlessAutoDisposeAsyncNotifier<List<ScheduleModel>> {
-  late final int userId;
+  late final String userId;
   late final DateTime date;
 
   FutureOr<List<ScheduleModel>> build(
-    int userId,
+    String userId,
     DateTime date,
   );
 }
@@ -52,7 +52,7 @@ class EmployeeScheduleVmFamily extends Family<AsyncValue<List<ScheduleModel>>> {
 
   /// See also [EmployeeScheduleVm].
   EmployeeScheduleVmProvider call(
-    int userId,
+    String userId,
     DateTime date,
   ) {
     return EmployeeScheduleVmProvider(
@@ -91,7 +91,7 @@ class EmployeeScheduleVmProvider extends AutoDisposeAsyncNotifierProviderImpl<
     EmployeeScheduleVm, List<ScheduleModel>> {
   /// See also [EmployeeScheduleVm].
   EmployeeScheduleVmProvider(
-    int userId,
+    String userId,
     DateTime date,
   ) : this._internal(
           () => EmployeeScheduleVm()
@@ -121,7 +121,7 @@ class EmployeeScheduleVmProvider extends AutoDisposeAsyncNotifierProviderImpl<
     required this.date,
   }) : super.internal();
 
-  final int userId;
+  final String userId;
   final DateTime date;
 
   @override
@@ -179,7 +179,7 @@ class EmployeeScheduleVmProvider extends AutoDisposeAsyncNotifierProviderImpl<
 mixin EmployeeScheduleVmRef
     on AutoDisposeAsyncNotifierProviderRef<List<ScheduleModel>> {
   /// The parameter `userId` of this provider.
-  int get userId;
+  String get userId;
 
   /// The parameter `date` of this provider.
   DateTime get date;
@@ -191,7 +191,7 @@ class _EmployeeScheduleVmProviderElement
   _EmployeeScheduleVmProviderElement(super.provider);
 
   @override
-  int get userId => (origin as EmployeeScheduleVmProvider).userId;
+  String get userId => (origin as EmployeeScheduleVmProvider).userId;
   @override
   DateTime get date => (origin as EmployeeScheduleVmProvider).date;
 }

@@ -9,7 +9,7 @@ abstract interface class ScheduleRepository {
   Future<Either<RepositoryException, Nil>> schedulePatient(
       ({
         int clinicaId,
-        int userId,
+        String userId,
         PatientModel patient,
         TutorModel tutor,
         String appointmentRoom,
@@ -20,6 +20,6 @@ abstract interface class ScheduleRepository {
   Future<Either<RepositoryException, List<ScheduleModel>>> findScheduleByDate(
       ({
         List<DateTime> dates,
-        int? userId,
+        String? userId,
       }) filter);
 }

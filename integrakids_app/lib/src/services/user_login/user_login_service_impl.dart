@@ -9,16 +9,16 @@ import '../../repositories/user/user_repository.dart';
 import './user_login_service.dart';
 
 class UserLoginServiceImpl implements UserLoginService {
-  final UserRepository userRepositorie;
+  final UserRepository userRepository;
 
   UserLoginServiceImpl({
-    required this.userRepositorie,
+    required this.userRepository,
   });
 
   @override
   Future<Either<ServiceException, Nil>> execute(
       String email, String password) async {
-    final loginResult = await userRepositorie.login(email, password);
+    final loginResult = await userRepository.login(email, password);
 
     switch (loginResult) {
       case Success(value: final accessToken):

@@ -27,7 +27,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         TutorModel tutor,
         String appointmentRoom,
         int time,
-        int userId
+        String userId
       }) scheduleData) async {
     try {
       await restClient.auth.post('/schedules', data: {
@@ -52,7 +52,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<Either<RepositoryException, List<ScheduleModel>>> findScheduleByDate(
       ({
         List<DateTime> dates,
-        int? userId,
+        String? userId,
       }) filter) async {
     try {
       final Response response =

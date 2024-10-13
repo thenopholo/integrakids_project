@@ -20,22 +20,22 @@ final restClientProvider = Provider<RestClient>.internal(
 );
 
 typedef RestClientRef = ProviderRef<RestClient>;
-String _$userRepositorieHash() => r'abf4cd67dff5f28dafd24c2bd7535354ee3959e6';
+String _$userRepositoryHash() => r'cf8ffedf3d27502e9115dc557577bb9fcce890dc';
 
-/// See also [userRepositorie].
-@ProviderFor(userRepositorie)
-final userRepositorieProvider = Provider<UserRepositoryImpl>.internal(
-  userRepositorie,
-  name: r'userRepositorieProvider',
+/// See also [userRepository].
+@ProviderFor(userRepository)
+final userRepositoryProvider = Provider<UserRepository>.internal(
+  userRepository,
+  name: r'userRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$userRepositorieHash,
+      : _$userRepositoryHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef UserRepositorieRef = ProviderRef<UserRepositoryImpl>;
-String _$userLoginServiceHash() => r'c5c59fadeea48493a7c6ad96a13fa2e0821ce9dd';
+typedef UserRepositoryRef = ProviderRef<UserRepository>;
+String _$userLoginServiceHash() => r'62431221aac8e45888e74928ecf0b5836e72b999';
 
 /// See also [userLoginService].
 @ProviderFor(userLoginService)
@@ -50,7 +50,7 @@ final userLoginServiceProvider = Provider<UserLoginService>.internal(
 );
 
 typedef UserLoginServiceRef = ProviderRef<UserLoginService>;
-String _$getMeHash() => r'91a8a4c1b76ce0a764300eceb540a5d9990c4bf1';
+String _$getMeHash() => r'835de91f459d1216fe7813de1ce4ffa8c28975d4';
 
 /// See also [getMe].
 @ProviderFor(getMe)
@@ -93,7 +93,7 @@ final getMyClinicaProvider = FutureProvider<ClinicaModel>.internal(
 );
 
 typedef GetMyClinicaRef = FutureProviderRef<ClinicaModel>;
-String _$logoutHash() => r'12afdaa89bedc9b7ffb1df963220919aa88ff076';
+String _$logoutHash() => r'9a25ad67d813cfdc88a33b450ce865f456d6c93b';
 
 /// See also [logout].
 @ProviderFor(logout)

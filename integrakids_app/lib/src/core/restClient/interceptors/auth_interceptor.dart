@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,10 +18,13 @@ class AuthInterceptor extends Interceptor {
     headers.remove(authHeaderKey);
 
     if (extra case {'DIO_AUTH_KEY': true}) {
-      final sp = await SharedPreferences.getInstance();
-      headers.addAll({
-        authHeaderKey: 'Bearer ${sp.getString(LocalStorageKeys.accessToken)}'
-      });
+      final String? firebaseToken =
+          await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (firebaseToken != null) {
+        headers.addAll({
+          authHeaderKey: 'Bearer $firebaseToken',
+        });
+      }
     }
 
     handler.next(options);
