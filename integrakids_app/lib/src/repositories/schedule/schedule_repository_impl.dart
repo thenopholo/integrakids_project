@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
@@ -26,7 +27,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         PatientModel patient,
         TutorModel tutor,
         String appointmentRoom,
-        int time,
+        TimeOfDay time,
         int userId
       }) scheduleData) async {
     try {
@@ -39,7 +40,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         'appointment_room': scheduleData.appointmentRoom,
         'dates':
             scheduleData.dates.map((date) => date.toIso8601String()).toList(),
-        'time': scheduleData.time,
+        'hour': scheduleData.time.hour,
+        'minute': scheduleData.time.minute,
       });
       return Success(nil);
     } on DioException catch (e, s) {
@@ -58,8 +60,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       final Response response =
           await restClient.auth.get('/schedules', queryParameters: {
         if (filter.userId != null) 'user_id': filter.userId,
-
-        // Aqui você pode enviar as datas no formato ISO para o backend
+        // Envie as datas no formato adequado
         'dates': filter.dates.map((date) => date.toIso8601String()).toList(),
       });
 

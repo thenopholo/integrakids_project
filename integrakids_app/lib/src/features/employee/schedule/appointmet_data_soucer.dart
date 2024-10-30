@@ -1,3 +1,5 @@
+// appontment_data_souce.dart
+
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../core/ui/utils/app_colors.dart';
@@ -13,12 +15,11 @@ class AppointmetDataSoucer extends CalendarDataSource {
   @override
   List<dynamic>? get appointments {
     return schedules.expand((e) {
-      // Itera sobre as múltiplas datas em `e.dates`
-      return e.dates.map((date) {
-        final startTime =
-            DateTime(date.year, date.month, date.day, e.hour, 0, 0);
+      // Itera sobre as múltiplas datas em e.dates
+      return e.dates.map((dateTime) {
+        final startTime = dateTime;
         final endTime =
-            DateTime(date.year, date.month, date.day, e.hour + 1, 0, 0);
+            startTime.add(const Duration(hours: 1)); // Duração de 1 hora
 
         final color = e.appointmentRoom == 'Sala 1'
             ? AppColors.integraBrown
@@ -29,9 +30,9 @@ class AppointmetDataSoucer extends CalendarDataSource {
           startTime: startTime,
           endTime: endTime,
           subject:
-              '${e.patient.name} Sala: ${e.appointmentRoom}\nTutor: ${e.tutor.name}',
+              '${e.patient.name} - Sala: ${e.appointmentRoom}\nTutor: ${e.tutor.name}',
         );
-      }).toList(); // Retorna uma lista de `Appointment` para cada data
+      }).toList();
     }).toList();
   }
 }

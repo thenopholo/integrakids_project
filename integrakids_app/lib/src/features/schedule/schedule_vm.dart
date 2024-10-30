@@ -1,10 +1,12 @@
 import 'package:asyncstate/asyncstate.dart';
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/fp/either.dart';
 import '../../core/providers/app_providers.dart';
 import '../../model/clinica_model.dart';
 import '../../model/patient_model.dart';
+import '../../model/schedule_model.dart';
 import '../../model/user_model.dart';
 import 'schedule_state.dart';
 
@@ -15,11 +17,11 @@ class ScheduleVm extends _$ScheduleVm {
   @override
   ScheduleState build() => ScheduleState.initial();
 
-  void hourSelect(int hour) {
-    if (hour == state.scheduleHour) {
-      state = state.copyWith(scheduleHour: () => null);
+  void timeSelect(TimeOfDay time) {
+    if (time == state.scheduleTime) {
+      state = state.copyWith(scheduleTime: () => null);
     } else {
-      state = state.copyWith(scheduleHour: () => hour);
+      state = state.copyWith(scheduleTime: () => time);
     }
   }
 
@@ -43,35 +45,29 @@ class ScheduleVm extends _$ScheduleVm {
     final asyncLoaderHandler = AsyncLoaderHandler()..start();
 
     final scheduleDates = state.scheduleDate;
-    final scheduleHour = state.scheduleHour;
+    final scheduleTime = state.scheduleTime;
     final recurrenceType = state.recurrenceType;
     final recurrenceEndDate = state.recurrenceEndDate;
+
+    if (scheduleTime == null ||
+        scheduleDates == null ||
+        scheduleDates.isEmpty) {
+      state = state.copyWith(
+        status: ScheduleStateStatus.error,
+        errorMessage: 'Por favor, selecione data e hora para o agendamento.',
+      );
+      asyncLoaderHandler.close();
+      return;
+    }
 
     final scheduleRepository = ref.read(scheduleRepositoryProvider);
     final ClinicaModel clinica = await ref.watch(getMyClinicaProvider.future);
     final int clinicaId = clinica.id;
 
     List<DateTime> dates = [];
-
     if (recurrenceType == RecurrenceType.none) {
-      if (scheduleDates == null || scheduleDates.isEmpty) {
-        state = state.copyWith(
-          status: ScheduleStateStatus.error,
-          errorMessage: 'Selecione pelo menos uma data de agendamento',
-        );
-        asyncLoaderHandler.close();
-        return;
-      }
       dates = scheduleDates;
     } else {
-      if (scheduleDates == null || scheduleDates.isEmpty) {
-        state = state.copyWith(
-          status: ScheduleStateStatus.error,
-          errorMessage: 'Selecione a data inicial do agendamento',
-        );
-        asyncLoaderHandler.close();
-        return;
-      }
       if (recurrenceEndDate == null) {
         state = state.copyWith(
           status: ScheduleStateStatus.error,
@@ -85,8 +81,8 @@ class ScheduleVm extends _$ScheduleVm {
     }
 
     // Passo adicional: Verificar conflitos
-    final scheduleResult =
-        await scheduleRepository.findScheduleByDate((dates: dates, userId: null));
+    final scheduleResult = await scheduleRepository
+        .findScheduleByDate((dates: dates, userId: null));
 
     if (scheduleResult is Failure) {
       state = state.copyWith(
@@ -99,15 +95,20 @@ class ScheduleVm extends _$ScheduleVm {
 
     final existingSchedules = (scheduleResult as Success).value;
 
+// Converte o horário selecionado em minutos totais
+    final selectedTimeMinutes = (state.scheduleTime?.hour ?? 0) * 60 +
+        (state.scheduleTime?.minute ?? 0);
+
     for (DateTime date in dates) {
       // Verifica se a sala está ocupada no mesmo horário
-      final roomOccupied = existingSchedules.any((schedule) =>
-          schedule.dates.contains(date) &&
-          schedule.hour == scheduleHour &&
-          schedule.appointmentRoom == appointmentRoom);
+      final roomOccupied = _isRoomOccupied(
+        existingSchedules,
+        date,
+        selectedTimeMinutes,
+        appointmentRoom,
+      );
 
       if (roomOccupied) {
-        // Sala já está ocupada neste horário
         state = state.copyWith(
           status: ScheduleStateStatus.error,
           errorMessage: 'Sala já ocupada neste horário',
@@ -117,16 +118,17 @@ class ScheduleVm extends _$ScheduleVm {
       }
 
       // Verifica se o profissional já tem um agendamento no mesmo horário
-      final therapistBusy = existingSchedules.any((schedule) =>
-          schedule.dates.contains(date) &&
-          schedule.hour == scheduleHour &&
-          schedule.userId == userModel.id);
+      final therapistBusy = _isTherapistBusy(
+        existingSchedules,
+        date,
+        selectedTimeMinutes,
+        userModel.id,
+      );
 
       if (therapistBusy) {
-        // Profissional já tem um agendamento neste horário
         state = state.copyWith(
           status: ScheduleStateStatus.error,
-          errorMessage: 'Você já tem um agendamento neste horário',
+          errorMessage: '${userModel.name} já tem um agendamento neste horário',
         );
         asyncLoaderHandler.close();
         return;
@@ -141,7 +143,7 @@ class ScheduleVm extends _$ScheduleVm {
       tutor: patient.tutor,
       appointmentRoom: appointmentRoom,
       dates: dates,
-      time: scheduleHour!,
+      time: scheduleTime, // Agora é do tipo TimeOfDay
     );
 
     final scheduleCreateResult = await scheduleRepository.schedulePatient(dto);
@@ -157,6 +159,54 @@ class ScheduleVm extends _$ScheduleVm {
 
     state = state.copyWith(status: ScheduleStateStatus.success);
     asyncLoaderHandler.close();
+  }
+
+  bool _isRoomOccupied(
+    List<ScheduleModel> schedules,
+    DateTime date,
+    int selectedTimeMinutes,
+    String appointmentRoom,
+  ) {
+    for (var schedule in schedules) {
+      final scheduleDate = schedule.dates.firstWhere(
+          (d) => _isSameDate(d, date),
+          orElse: () => DateTime.now());
+      final scheduleTimeMinutes = schedule.hour * 60 + schedule.minute;
+
+      if (_isSameDate(scheduleDate, date) &&
+          scheduleTimeMinutes == selectedTimeMinutes &&
+          schedule.appointmentRoom == appointmentRoom) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isTherapistBusy(
+    List<ScheduleModel> schedules,
+    DateTime date,
+    int selectedTimeMinutes,
+    int userId,
+  ) {
+    for (var schedule in schedules) {
+      final scheduleDate = schedule.dates.firstWhere(
+          (d) => _isSameDate(d, date),
+          orElse: () => DateTime.now());
+      final scheduleTimeMinutes = schedule.hour * 60 + schedule.minute;
+
+      if (_isSameDate(scheduleDate, date) &&
+          scheduleTimeMinutes == selectedTimeMinutes &&
+          schedule.userId == userId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   /// Geração de datas recorrentes com base no tipo de recorrência

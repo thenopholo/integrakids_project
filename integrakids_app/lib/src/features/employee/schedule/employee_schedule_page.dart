@@ -53,7 +53,7 @@ class _EmployeeSchedulePageState extends ConsumerState<EmployeeSchedulePage> {
             ),
           ),
           const SizedBox(
-            height: 44,
+            height: 34,
           ),
           scheduleAsync.when(
             loading: () => const IntegrakidsLoader(),
@@ -65,7 +65,7 @@ class _EmployeeSchedulePageState extends ConsumerState<EmployeeSchedulePage> {
             data: (schedules) {
               return Expanded(
                 child: SfCalendar(
-                  
+                  view: CalendarView.workWeek,
                   allowAppointmentResize: true,
                   allowViewNavigation: true,
                   showNavigationArrow: true,

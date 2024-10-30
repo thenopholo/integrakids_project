@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
 import '../../core/fp/nil.dart';
@@ -14,7 +16,7 @@ abstract interface class ScheduleRepository {
         TutorModel tutor,
         String appointmentRoom,
         List<DateTime> dates,
-        int time,
+        TimeOfDay time, // Atualizado aqui
       }) scheduleData);
 
   Future<Either<RepositoryException, List<ScheduleModel>>> findScheduleByDate(
