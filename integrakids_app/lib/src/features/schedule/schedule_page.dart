@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +12,7 @@ import 'package:validatorless/validatorless.dart';
 import '../../core/ui/helpers/form_helper.dart';
 import '../../core/ui/helpers/messages.dart';
 import '../../core/ui/utils/app_colors.dart';
+import '../../core/ui/utils/app_font.dart';
 import '../../core/ui/widgets/avatar_widget.dart';
 import '../../core/ui/widgets/hours_panel.dart';
 import '../../core/ui/widgets/integrakids_icons.dart';
@@ -36,6 +40,9 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   final dateEC = TextEditingController();
   final recurrenceEndDateEC = TextEditingController();
   RecurrenceType recurrenceType = RecurrenceType.none;
+  TimeOfDay? _selectedTime; // For Android
+  DateTime? _selectedTimeIOS;
+
   @override
   void dispose() {
     patientEC.dispose();
@@ -45,6 +52,34 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     dateEC.dispose();
     recurrenceEndDateEC.dispose();
     super.dispose();
+  }
+
+  String _getFormattedTime() {
+    if (Platform.isIOS) {
+      if (_selectedTimeIOS != null) {
+        final hours = _selectedTimeIOS!.hour.toString().padLeft(2, '0');
+        final minutes = _selectedTimeIOS!.minute.toString().padLeft(2, '0');
+        return '$hours:$minutes';
+      } else {
+        return 'Horário de atendimento';
+      }
+    } else {
+      if (_selectedTime != null) {
+        final hours = _selectedTime!.hour.toString().padLeft(2, '0');
+        final minutes = _selectedTime!.minute.toString().padLeft(2, '0');
+        return '$hours:$minutes';
+      } else {
+        return 'Horário de atendimento';
+      }
+    }
+  }
+
+  int _getSelectedHour() {
+    if (Platform.isIOS) {
+      return _selectedTimeIOS?.hour ?? DateTime.now().hour;
+    } else {
+      return _selectedTime?.hour ?? TimeOfDay.now().hour;
+    }
   }
 
   @override
@@ -61,7 +96,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
           workHours: workHours,
         ),
     };
-    
+
     ref.listen<ScheduleState>(
       scheduleVmProvider,
       (_, state) {
@@ -401,12 +436,108 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                   const SizedBox(
                     height: 24,
                   ),
-                  HoursPanel.singleSelection(
-                    startTime: 6,
-                    endTime: 23,
-                    onTimePressed: scheduleVM.hourSelect,
-                    enableHours: employeeData.workHours,
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.bgFormInput,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (Platform.isIOS) {
+                          DateTime tempPickedDate =
+                              _selectedTimeIOS ?? DateTime.now();
+                          await showModalBottomSheet(
+                            backgroundColor: Colors.transparent,
+                            context: context,
+                            builder: (context) {
+                              return CupertinoActionSheet(
+                                actions: [
+                                  SizedBox(
+                                    height: 180,
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.time,
+                                      initialDateTime:
+                                          _selectedTimeIOS ?? DateTime.now(),
+                                      onDateTimeChanged:
+                                          (DateTime newDateTime) {
+                                        tempPickedDate = newDateTime;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                                cancelButton: CupertinoActionSheetAction(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedTimeIOS = tempPickedDate;
+                                      scheduleVM.timeSelect(
+                                        TimeOfDay(
+                                          hour: _selectedTimeIOS!.hour,
+                                          minute: _selectedTimeIOS!.minute,
+                                        ),
+                                      );
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text(
+                                    'Confirmar',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: AppColors.integraOrange,
+                                      fontFamily: AppFont.primaryFont,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        } else {
+                          final selectedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                            initialEntryMode: TimePickerEntryMode.input,
+                            cancelText: 'Cancelar',
+                            confirmText: 'Confirmar',
+                          );
+                          if (selectedTime != null) {
+                            setState(() {
+                              _selectedTime = selectedTime;
+                              scheduleVM.timeSelect(selectedTime);
+                            });
+                          }
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _getFormattedTime(),
+                              style: const TextStyle(
+                                color: AppColors.integraOrange,
+                                fontFamily: AppFont.primaryFont,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.watch_later_outlined,
+                              color: AppColors.integraBrown,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                  // HoursPanel.singleSelection(
+                  //   startTime: 6,
+                  //   endTime: 23,
+                  //   onTimePressed: scheduleVM.hourSelect,
+                  //   enableHours: employeeData.workHours,
+                  // ),
                   const SizedBox(
                     height: 24,
                   ),
@@ -421,7 +552,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                       final scheduleVmState = ref.read(scheduleVmProvider);
 
                       // Verifica se um horário foi selecionado
-                      if (scheduleVmState.scheduleHour == null) {
+                      if (scheduleVmState.scheduleTime == null) {
                         Messages.showError(
                             'Selecione um horário de atendimento', context);
                         return;
