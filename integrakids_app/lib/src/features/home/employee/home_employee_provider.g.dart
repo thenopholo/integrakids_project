@@ -7,7 +7,7 @@ part of 'home_employee_provider.dart';
 // **************************************************************************
 
 String _$getTotalSchedulesTodayHash() =>
-    r'f1cd85a85c03bc107e090288fa6c645c9551f1db';
+    r'cf12706a978a6b5833e8da6874e3dd88193c6824';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -41,7 +41,7 @@ class GetTotalSchedulesTodayFamily extends Family<AsyncValue<int>> {
 
   /// See also [getTotalSchedulesToday].
   GetTotalSchedulesTodayProvider call(
-    int userId,
+    String userId,
   ) {
     return GetTotalSchedulesTodayProvider(
       userId,
@@ -76,7 +76,7 @@ class GetTotalSchedulesTodayFamily extends Family<AsyncValue<int>> {
 class GetTotalSchedulesTodayProvider extends AutoDisposeFutureProvider<int> {
   /// See also [getTotalSchedulesToday].
   GetTotalSchedulesTodayProvider(
-    int userId,
+    String userId,
   ) : this._internal(
           (ref) => getTotalSchedulesToday(
             ref as GetTotalSchedulesTodayRef,
@@ -104,7 +104,7 @@ class GetTotalSchedulesTodayProvider extends AutoDisposeFutureProvider<int> {
     required this.userId,
   }) : super.internal();
 
-  final int userId;
+  final String userId;
 
   @override
   Override overrideWith(
@@ -145,7 +145,7 @@ class GetTotalSchedulesTodayProvider extends AutoDisposeFutureProvider<int> {
 
 mixin GetTotalSchedulesTodayRef on AutoDisposeFutureProviderRef<int> {
   /// The parameter `userId` of this provider.
-  int get userId;
+  String get userId;
 }
 
 class _GetTotalSchedulesTodayProviderElement
@@ -154,7 +154,7 @@ class _GetTotalSchedulesTodayProviderElement
   _GetTotalSchedulesTodayProviderElement(super.provider);
 
   @override
-  int get userId => (origin as GetTotalSchedulesTodayProvider).userId;
+  String get userId => (origin as GetTotalSchedulesTodayProvider).userId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

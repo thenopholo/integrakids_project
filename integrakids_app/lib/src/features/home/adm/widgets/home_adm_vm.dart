@@ -13,7 +13,7 @@ part 'home_adm_vm.g.dart';
 class HomeAdmVm extends _$HomeAdmVm {
   @override
   Future<HomeAdmState> build() async {
-    final repository = ref.read(userRepositorieProvider);
+    final repository = ref.read(userRepositoryProvider);
     final ClinicaModel(id: clinicaId) =
         await ref.read(getMyClinicaProvider.future);
     final me = await ref.watch(getMeProvider.future);

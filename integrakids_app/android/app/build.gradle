@@ -1,3 +1,7 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services' // Certifique-se de ter esta linha
+
+
 plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
@@ -67,4 +71,6 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:32.1.1') // Verifique a versão
+}
