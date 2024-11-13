@@ -52,6 +52,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -67,4 +68,10 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    // Firebase Auth
+    implementation 'com.google.firebase:firebase-auth:22.0.0' 
+    
+    // Firestore
+    implementation 'com.google.firebase:firebase-firestore:24.4.0'
+}

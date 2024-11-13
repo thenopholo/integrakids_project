@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "593746663874",
     "project_id": "integrakidsapp",
-    "storage_bucket": "integrakidsapp.appspot.com"
+    "storage_bucket": "integrakidsapp.firebasestorage.app"
   },
   "client": [
     {
