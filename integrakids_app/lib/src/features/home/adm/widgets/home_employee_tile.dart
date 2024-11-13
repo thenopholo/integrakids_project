@@ -46,7 +46,7 @@ class HomeEmployeeTile extends ConsumerWidget {
     );
 
     if (shouldDelete == true) {
-      final userRepository = ref.read(userRepositorieProvider);
+      final userRepository = ref.read(userRepositoryProvider);
       final result = await userRepository.deleteEmployee(employee.id);
 
       switch (result) {

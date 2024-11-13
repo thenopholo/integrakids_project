@@ -9,6 +9,7 @@ import 'src/integrakids_app.dart';
 Future<void> main() async {
   await initializeDateFormatting();
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
@@ -18,6 +19,8 @@ Future<void> main() async {
   } catch (e) {
     print('Erro ao inicializar o Firebase: $e');
   }
+
+
   runApp(
     const ProviderScope(
       child: IntegrakidsApp(),

@@ -1,5 +1,5 @@
 sealed class UserModel {
-  final int id;
+  final String id;
   final String name;
   final String especialidade;
   final String email;
@@ -39,7 +39,7 @@ class UserModelADM extends UserModel {
   factory UserModelADM.fromMap(Map<String, dynamic> json) {
     return switch (json) {
       {
-        'id': int id,
+        'id': String id,
         'name': String name,
         'especialidade': String especialidade,
         'email': String email,
@@ -77,7 +77,7 @@ class UserModelEmployee extends UserModel {
   factory UserModelEmployee.fromMap(Map<String, dynamic> json) {
     return switch (json) {
       {
-        'id': final int id,
+        'id': final String id,
         'name': final String name,
         'especialidade': final String especialidade,
         'email': final String email,

@@ -4,6 +4,7 @@ import 'package:dio/io.dart';
 import 'interceptors/auth_interceptor.dart';
 
 final class RestClient extends DioForNative {
+  
   RestClient()
       : super(
           BaseOptions(

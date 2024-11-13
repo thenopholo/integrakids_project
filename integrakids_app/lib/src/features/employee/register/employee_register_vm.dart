@@ -53,16 +53,15 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
     final asyncLoaderHandler = AsyncLoaderHandler()..start();
 
     final UserRepository(:registerADMAsEmployee, :registerEmployee) =
-        ref.read(userRepositorieProvider);
+        ref.read(userRepositoryProvider);
 
     final Either<RepositoryException, Nil> resultRegister;
 
     if (registerADM) {
-      final dto = (
+      resultRegister = await registerADMAsEmployee(
         workDays: workDays,
         workHours: workHours,
       );
-      resultRegister = await registerADMAsEmployee(dto);
     } else {
       final ClinicaModel(:id) = await ref.watch(getMyClinicaProvider.future);
       final dto = (
@@ -75,7 +74,15 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
         workHours: workHours,
       );
 
-      resultRegister = await registerEmployee(dto);
+      resultRegister = await registerEmployee(
+        clinicaId: id,
+        name: name,
+        especialidade: especialidade,
+        email: email,
+        password: password,
+        workDays: workDays,
+        workHours: workHours,
+      );
     }
 
     switch (resultRegister) {
@@ -88,16 +95,15 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
   }
 
   void setWorkDays(List<String> workDays) {
-  state = state.copyWith(workDays: List.from(workDays));
-}
+    state = state.copyWith(workDays: List.from(workDays));
+  }
 
-void setWorkHours(List<int> workHours) {
-  state = state.copyWith(workHours: List.from(workHours));
-}
-
+  void setWorkHours(List<int> workHours) {
+    state = state.copyWith(workHours: List.from(workHours));
+  }
 
   Future<void> edit(
-      {required int id,
+      {required String id,
       String? name,
       String? email,
       String? password,
@@ -120,7 +126,15 @@ void setWorkHours(List<int> workHours) {
       workHours: workHours,
     );
 
-    final result = await ref.read(userRepositorieProvider).editEmployee(dto);
+    final result = await ref.read(userRepositoryProvider).editEmployee(
+          id: id,
+          clinicaId: clinicaId,
+          name: name,
+          especialidade: especialidade,
+          email: email,
+          workDays: workDays,
+          workHours: workHours,
+        );
 
     switch (result) {
       case Success():

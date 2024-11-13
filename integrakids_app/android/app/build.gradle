@@ -1,3 +1,7 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services' // Certifique-se de ter esta linha
+
+
 plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
@@ -69,9 +73,11 @@ flutter {
 }
 
 dependencies {
+
     // Firebase Auth
     implementation 'com.google.firebase:firebase-auth:22.0.0' 
     
     // Firestore
     implementation 'com.google.firebase:firebase-firestore:24.4.0'
 }
+
