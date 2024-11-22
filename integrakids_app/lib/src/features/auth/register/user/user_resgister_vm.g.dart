@@ -6,7 +6,7 @@ part of 'user_resgister_vm.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userResgisterVmHash() => r'8f94f0ea2396e18777ca2127320594ef329610a6';
+String _$userResgisterVmHash() => r'8f1fad81440e31f396be2ae6125af980369dc0d1';
 
 /// See also [UserResgisterVm].
 @ProviderFor(UserResgisterVm)

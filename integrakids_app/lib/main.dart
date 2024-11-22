@@ -16,7 +16,7 @@ Future<void> main() async {
       );
     }
   } catch (e) {
-    print('Erro ao inicializar o Firebase: $e');
+    debugPrint('Erro ao inicializar o Firebase: $e');
   }
   runApp(
     const ProviderScope(

@@ -37,6 +37,7 @@ target 'Runner' do
   # Dependências do Firebase
   pod 'Firebase/Auth'
   pod 'Firebase/Firestore'
+  pod 'Firebase/Database'
   # Adicione outros serviços do Firebase aqui, se necessário
   # Exemplo: pod 'Firebase/Analytics'
 end

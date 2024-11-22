@@ -2,6 +2,8 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import '../../core/exceptions/auth_exception.dart';
 import '../../core/exceptions/repository_exception.dart';
@@ -65,19 +67,39 @@ class UserRepositoryImpl implements UserRepository {
         String especialidade
       }) userData) async {
     try {
-      await restClient.unauth.post('/users', data: {
-        'name': userData.name,
-        'especialidade': userData.especialidade,
-        'email': userData.email,
-        'password': userData.password,
+      final String email = userData.email;
+      final String name = userData.name;
+      final String password = userData.password;
+      final String especialidade = userData.especialidade;
+
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      String uid = userCredential.user!.uid;
+
+      DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(uid);
+
+      Map<String, dynamic> data = {
+        'name': name,
+        'email': email,
+        'especialidade': especialidade,
         'profile': 'ADM',
-      });
+      };
+
+      await userRef.child(uid).set(data);
 
       return Success(nil);
-    } on DioException catch (e, s) {
+    } on FirebaseAuthException catch (e) {
+      return Failure(
+        RepositoryException(message: e.message ?? 'Erro ao registrar usuário'),
+      );
+    } catch (e, s) {
       log('Erro ao registrar o usuário', error: e, stackTrace: s);
       return Failure(
-        RepositoryException(message: 'Erro ao registrar o usuário Admin'),
+        RepositoryException(message: 'Erro desconhecido ao registrar usuário'),
       );
     }
   }
@@ -166,40 +188,40 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-@override
-Future<Either<RepositoryException, Nil>> editEmployee(({
-  int id,
-  int clinicaId,
-  String name,
-  String especialidade,
-  String email,
-  String? password,
-  List<String> workDays,
-  List<int> workHours,
-}) userModel) async {
-  try {
-    final data = {
-      'name': userModel.name,
-      'especialidade': userModel.especialidade,
-      'email': userModel.email,
-      'profile': 'EMPLOYEE',
-      'clinica_id': userModel.clinicaId,
-      'work_days': userModel.workDays,
-      'work_hours': userModel.workHours,
-    };
-    if (userModel.password != null && userModel.password!.isNotEmpty) {
-      data['password'] = userModel.password as String;
+  @override
+  Future<Either<RepositoryException, Nil>> editEmployee(
+      ({
+        int id,
+        int clinicaId,
+        String name,
+        String especialidade,
+        String email,
+        String? password,
+        List<String> workDays,
+        List<int> workHours,
+      }) userModel) async {
+    try {
+      final data = {
+        'name': userModel.name,
+        'especialidade': userModel.especialidade,
+        'email': userModel.email,
+        'profile': 'EMPLOYEE',
+        'clinica_id': userModel.clinicaId,
+        'work_days': userModel.workDays,
+        'work_hours': userModel.workHours,
+      };
+      if (userModel.password != null && userModel.password!.isNotEmpty) {
+        data['password'] = userModel.password as String;
+      }
+
+      await restClient.auth.put('/users/${userModel.id}', data: data);
+
+      return Success(nil);
+    } on DioException catch (e, s) {
+      log('Erro ao editar terapeuta', error: e, stackTrace: s);
+      return Failure(RepositoryException(message: 'Erro ao editar terapeuta'));
     }
-
-    await restClient.auth.put('/users/${userModel.id}', data: data);
-
-    return Success(nil);
-  } on DioException catch (e, s) {
-    log('Erro ao editar terapeuta', error: e, stackTrace: s);
-    return Failure(RepositoryException(message: 'Erro ao editar terapeuta'));
   }
-}
-
 
   @override
   Future<Either<RepositoryException, Nil>> deleteEmployee(int id) async {

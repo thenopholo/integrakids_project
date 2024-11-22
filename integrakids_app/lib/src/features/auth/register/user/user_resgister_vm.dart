@@ -7,12 +7,15 @@ part 'user_resgister_vm.g.dart';
 
 enum UserRegisterStateStatus {
   initial,
+  loading,
   success,
   error,
 }
 
 @riverpod
 class UserResgisterVm extends _$UserResgisterVm {
+  String? errorMessage;
+
   @override
   UserRegisterStateStatus build() => UserRegisterStateStatus.initial;
 
@@ -22,7 +25,8 @@ class UserResgisterVm extends _$UserResgisterVm {
     required String email,
     required String password,
   }) async {
-    final userRegisterAdmService = ref.watch(userRegisterAdmServiceProvider);
+    state = UserRegisterStateStatus.loading;
+    final userRegisterAdmService = ref.read(userRegisterAdmServiceProvider);
 
     final userDTO = (
       name: name,
@@ -37,6 +41,7 @@ class UserResgisterVm extends _$UserResgisterVm {
         ref.invalidate(getMeProvider);
         state = UserRegisterStateStatus.success;
       case Failure():
+        
         state = UserRegisterStateStatus.error;
     }
   }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:validatorless/validatorless.dart';
@@ -32,18 +33,25 @@ class _UserResgisterPageState extends ConsumerState<UserResgisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final userRegisterVm = ref.watch(userResgisterVmProvider.notifier);
+  final userRegisterVm = ref.read(userResgisterVmProvider.notifier);
 
-    ref.listen(userResgisterVmProvider, (_, state) {
-      switch (state) {
-        case UserRegisterStateStatus.initial:
-          break;
-        case UserRegisterStateStatus.success:
-          Navigator.of(context).pushNamed('/auth/register/create_clinica');
-        case UserRegisterStateStatus.error:
-          Messages.showError('Erro ao criar conta ADM', context);
-      }
-    });
+  ref.listen<UserRegisterStateStatus>(userResgisterVmProvider, (_, state) {
+    switch (state) {
+      case UserRegisterStateStatus.initial:
+        break;
+      case UserRegisterStateStatus.loading:
+        // Opcional: Mostrar um indicador de carregamento
+        break;
+      case UserRegisterStateStatus.success:
+        Navigator.of(context).pushNamed('/auth/register/create_clinica');
+        break;
+      case UserRegisterStateStatus.error:
+        // Exibir mensagem de erro
+        final errorMessage = userRegisterVm.errorMessage;
+        Messages.showError(errorMessage ?? 'Erro ao criar conta ADM', context);
+        break;
+    }
+  });
 
     return Scaffold(
       appBar: AppBar(
