@@ -39,16 +39,16 @@ abstract interface class UserRepository {
 
 Future<Either<RepositoryException, Nil>> editEmployee(
   ({
-    String id,
-    String clinicaId,
-    String name,
-    String especialidade,
-    String email,
-    String? password,
-    List<String> workDays,
-    List<int> workHours,
+        String id,
+        String clinicaId,
+        String name,
+        String especialidade,
+        String email,
+        String? password,
+        List<String> workDays,
+        List<int> workHours,
   }) userModel);
 
 
-  Future<Either<RepositoryException, Nil>> deleteEmployee(String id);
+  Future<Either<RepositoryException, Nil>> deleteEmployee(String id, String clinicaId);
 }

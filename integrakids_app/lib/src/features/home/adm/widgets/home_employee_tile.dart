@@ -47,7 +47,8 @@ class HomeEmployeeTile extends ConsumerWidget {
 
     if (shouldDelete == true) {
       final userRepository = ref.read(userRepositorieProvider);
-      final result = await userRepository.deleteEmployee(employee.id);
+      final result =
+          await userRepository.deleteEmployee(employee.id, employee.clinicaId);
 
       switch (result) {
         case Failure(exception: final exception):
@@ -65,7 +66,6 @@ class HomeEmployeeTile extends ConsumerWidget {
             ),
           );
           ref.invalidate(homeAdmVmProvider);
-          break;
       }
     }
   }

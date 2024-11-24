@@ -79,28 +79,15 @@ class UserModelEmployee extends UserModel {
     super.avatar,
   });
 
-  factory UserModelEmployee.fromMap(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-        'id': final String id,
-        'name': final String name,
-        'especialidade': final String especialidade,
-        'email': final String email,
-        'clinica_id': final String clinicaId,
-        'work_days': final List workDays,
-        'work_hours': final List workHours,
-      } =>
-        UserModelEmployee(
-          id: id,
-          name: name,
-          especialidade: especialidade,
-          email: email,
-          avatar: json['avatar'],
-          clinicaId: clinicaId,
-          workDays: workDays.cast<String>(),
-          workHours: workHours.cast<int>(),
-        ),
-      _ => throw ArgumentError('Invalid Json'),
-    };
+  factory UserModelEmployee.fromMap(Map<String, dynamic> map) {
+    return UserModelEmployee(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      email: map['email'] ?? '',
+      especialidade: map['especialidade'] ?? '',
+      clinicaId: map['clinica_id'] ?? '',
+      workDays: List<String>.from(map['work_days'] ?? []),
+      workHours: List<int>.from(map['work_hours'] ?? []),
+    );
   }
 }

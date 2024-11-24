@@ -131,6 +131,8 @@ class UserRepositoryImpl implements UserRepository {
       String clinicaId) async {
     try {
       log('Buscando funcionários da clínica: $clinicaId');
+
+      // Referência para o nó de funcionários da clínica
       DatabaseReference employeesRef = FirebaseDatabase.instance
           .ref()
           .child('clinics')
@@ -138,34 +140,33 @@ class UserRepositoryImpl implements UserRepository {
           .child('employees');
 
       DataSnapshot snapshot = await employeesRef.get();
-      log('Snapshot exists: ${snapshot.exists}');
 
       if (snapshot.exists) {
-        List<UserModel> employees = [];
-        Map<String, dynamic> data =
-            Map<String, dynamic>.from(snapshot.value as Map);
+        final List<UserModel> employees = [];
 
-        log('Dados dos funcionários: $data');
-
-        data.forEach((key, value) {
+        // Iterar sobre cada nó de funcionário
+        Map<dynamic, dynamic> employeesMap =
+            snapshot.value as Map<dynamic, dynamic>;
+        employeesMap.forEach((key, value) {
           Map<String, dynamic> employeeData = Map<String, dynamic>.from(value);
-          // Garantir que o ID está presente
-          employeeData['id'] = key;
-          log('Processando funcionário: $employeeData');
-          UserModel user = UserModel.fromMap(employeeData);
-          employees.add(user);
+          employeeData['id'] = key; // Definir o ID do funcionário
+
+          // Criar instância de UserModelEmployee
+          UserModelEmployee employee = UserModelEmployee.fromMap(employeeData);
+          employees.add(employee);
         });
 
         log('Total de funcionários encontrados: ${employees.length}');
         return Success(employees);
       } else {
-        log('Nenhum funcionário encontrado');
+        log('Nenhum funcionário encontrado na clínica $clinicaId');
         return Success([]);
       }
     } catch (e, s) {
-      log('Erro ao obter terapeutas: $e');
+      log('Erro ao obter funcionários: $e');
       log('StackTrace: $s');
-      return Failure(RepositoryException(message: 'Erro ao obter terapeutas'));
+      return Failure(
+          RepositoryException(message: 'Erro ao obter funcionários'));
     }
   }
 
@@ -227,6 +228,16 @@ class UserRepositoryImpl implements UserRepository {
         List<int> workHours
       }) userModel) async {
     try {
+      log('Iniciando registro do funcionário: ${userModel.email}');
+
+      final adminUser = FirebaseAuth.instance.currentUser;
+      final adminEmail = adminUser?.email;
+      //! Obter de forma segura
+      // TODO: 'Obter a senha do administrador de forma segura';
+      const adminPassword = '123123';
+      //! ------------------------- //
+
+      // Cria o usuário no Firebase Auth
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: userModel.email,
@@ -234,29 +245,63 @@ class UserRepositoryImpl implements UserRepository {
       );
 
       String uid = userCredential.user!.uid;
+      log('Usuário criado com UID: $uid');
 
-      DatabaseReference userRef = FirebaseDatabase.instance
-          .ref()
-          .child('clinics')
-          .child(userModel.clinicaId.toString())
-          .child('employees')
-          .child(uid);
-
+      // Dados do funcionário
       Map<String, dynamic> data = {
+        'id': uid,
         'name': userModel.name,
         'email': userModel.email,
         'especialidade': userModel.especialidade,
         'profile': 'EMPLOYEE',
         'work_days': userModel.workDays,
         'work_hours': userModel.workHours,
+        'clinica_id': userModel.clinicaId,
       };
 
+      log('Dados do funcionário: $data');
+
+      // Salva os dados em clinics/{clinicaId}/employees/{uid}
+      DatabaseReference clinicEmployeeRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinics')
+          .child(userModel.clinicaId)
+          .child('employees')
+          .child(uid);
+
+      await clinicEmployeeRef.set(data);
+      log('Dados salvos em clinics/${userModel.clinicaId}/employees/$uid');
+
+      // Salva os dados também em users/{uid}
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child('users').child(uid);
+
       await userRef.set(data);
+      log('Dados salvos em users/$uid');
+
+      // Fazer logout do novo usuário
+      await FirebaseAuth.instance.signOut();
+
+      // Reautenticar como administrador
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: adminEmail!,
+        password: adminPassword,
+      );
 
       return Success(nil);
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      log('Erro ao criar usuário no Firebase Auth: ${e.code} - ${e.message}');
       return Failure(
-          RepositoryException(message: 'Erro ao cadastrar terapeuta'));
+          RepositoryException(message: 'Erro ao criar usuário: ${e.message}'));
+    } on FirebaseException catch (e) {
+      log('Erro ao salvar dados no Realtime Database: ${e.code} - ${e.message}');
+      return Failure(
+          RepositoryException(message: 'Erro ao salvar dados: ${e.message}'));
+    } catch (e, stackTrace) {
+      log('Erro inesperado ao registrar funcionário: $e');
+      log('StackTrace: $stackTrace');
+      return Failure(RepositoryException(
+          message: 'Erro inesperado ao registrar funcionário'));
     }
   }
 
@@ -302,14 +347,15 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<RepositoryException, Nil>> deleteEmployee(String id) async {
+  Future<Either<RepositoryException, Nil>> deleteEmployee(
+      String id, String clinicaId) async {
     try {
       DatabaseReference employeeRef = FirebaseDatabase.instance
           .ref()
-          .child('clinica')
-          .child('1')
+          .child('clinics')
+          .child(clinicaId)
           .child('employees')
-          .child(id.toString());
+          .child(id);
 
       await employeeRef.remove();
 
