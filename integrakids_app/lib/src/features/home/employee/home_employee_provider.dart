@@ -7,7 +7,7 @@ part 'home_employee_provider.g.dart';
 
 @riverpod
 Future<int> getTotalSchedulesToday(
-    GetTotalSchedulesTodayRef ref, int userId) async {
+    GetTotalSchedulesTodayRef ref, String userId) async {
   final DateTime now = DateTime.now();
   final filter = (dates: [now], userId: userId);  // Passa uma lista com a data atual
 

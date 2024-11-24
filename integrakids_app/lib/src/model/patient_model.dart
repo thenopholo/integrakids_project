@@ -1,7 +1,7 @@
 import 'tutor_model.dart';
 
 class PatientModel {
-  final int id;
+  final String id;
   final String name;
   final TutorModel tutor;
 
@@ -13,7 +13,7 @@ class PatientModel {
 
   factory PatientModel.fromMap(Map<String, dynamic> json) {
     return PatientModel(
-      id: 0,
+      id: '0',
       name: json['patientName'],
       tutor: TutorModel(
         name: json['tutorsName'],

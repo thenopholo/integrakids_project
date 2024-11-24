@@ -7,7 +7,7 @@ part of 'user_register_providers.dart';
 // **************************************************************************
 
 String _$userRegisterAdmServiceHash() =>
-    r'8e43697cb591cbc30c19e293967e53b612e6de76';
+    r'9dcb7a9343917ab4f21fed6d46ff4644944e7496';
 
 /// See also [userRegisterAdmService].
 @ProviderFor(userRegisterAdmService)

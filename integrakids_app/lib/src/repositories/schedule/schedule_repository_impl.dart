@@ -1,52 +1,50 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
 import '../../core/fp/nil.dart';
-import '../../core/restClient/rest_client.dart';
 import '../../model/patient_model.dart';
 import '../../model/schedule_model.dart';
 import '../../model/tutor_model.dart';
 import './schedule_repository.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
-  final RestClient restClient;
-
-  ScheduleRepositoryImpl({
-    required this.restClient,
-  });
 
   @override
   Future<Either<RepositoryException, Nil>> schedulePatient(
       ({
-        int clinicaId,
+        String clinicaId,
         List<DateTime> dates,
         PatientModel patient,
         TutorModel tutor,
         String appointmentRoom,
         TimeOfDay time,
-        int userId
+        String userId
       }) scheduleData) async {
     try {
-      await restClient.auth.post('/schedules', data: {
-        'clinica_id': scheduleData.clinicaId,
-        'user_id': scheduleData.userId,
-        'patient_name': scheduleData.patient.name,
-        'tutor_name': scheduleData.tutor.name,
-        'tutor_phone': scheduleData.tutor.phone,
-        'appointment_room': scheduleData.appointmentRoom,
-        'dates':
-            scheduleData.dates.map((date) => date.toIso8601String()).toList(),
-        'hour': scheduleData.time.hour,
-        'minute': scheduleData.time.minute,
-      });
+      DatabaseReference schedulesRef =
+          FirebaseDatabase.instance.ref().child('schedules');
+      for (DateTime date in scheduleData.dates) {
+        String scheduleKey = schedulesRef.push().key!;
+        await schedulesRef.child(scheduleKey).set({
+          'clinicaId': scheduleData.clinicaId,
+          'userId': scheduleData.userId,
+          'patientName': scheduleData.patient.name,
+          'tutorName': scheduleData.tutor.name,
+          'tutorPhone': scheduleData.tutor.phone,
+          'appointmentRoom': scheduleData.appointmentRoom,
+          'date': date.toIso8601String(),
+          'time': '${scheduleData.time.hour}:${scheduleData.time.minute}',
+        });
+      }
+
       return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao registrar agendamento', error: e, stackTrace: s);
-      return Failure(RepositoryException(message: 'Erro ao agendar consulta'));
+    } catch (e) {
+      return Failure(RepositoryException(message: 'Erro ao agendar paciente'));
     }
   }
 
@@ -54,30 +52,43 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<Either<RepositoryException, List<ScheduleModel>>> findScheduleByDate(
       ({
         List<DateTime> dates,
-        int? userId,
+        String? userId,
       }) filter) async {
     try {
-      final Response response =
-          await restClient.auth.get('/schedules', queryParameters: {
-        if (filter.userId != null) 'user_id': filter.userId,
-        // Envie as datas no formato adequado
-        'dates': filter.dates.map((date) => date.toIso8601String()).toList(),
-      });
+      // Referência ao nó de agendamentos
+      DatabaseReference schedulesRef =
+          FirebaseDatabase.instance.ref().child('schedules');
 
-      final schedules =
-          (response.data as List).map((s) => ScheduleModel.fromMap(s)).toList();
+      List<ScheduleModel> schedules = [];
+
+      // Itera pelas datas do filtro
+      for (DateTime date in filter.dates) {
+        Query query =
+            schedulesRef.orderByChild('date').equalTo(date.toIso8601String());
+
+        // Adiciona um filtro por userId, caso necessário
+        if (filter.userId != null) {
+          query = query.orderByChild('userId').equalTo(filter.userId);
+        }
+
+        DataSnapshot snapshot = await query.get();
+
+        if (snapshot.exists) {
+          // Itera pelos resultados da consulta
+          Map<String, dynamic> data =
+              Map<String, dynamic>.from(snapshot.value as Map);
+          data.forEach((key, value) {
+            schedules
+                .add(ScheduleModel.fromMap(Map<String, dynamic>.from(value)));
+          });
+        }
+      }
+
       return Success(schedules);
-    } on DioException catch (e, s) {
-      log('Erro ao buscar agendamentos de uma data', error: e, stackTrace: s);
-      return Failure(
-        RepositoryException(message: 'Erro ao buscar agendamentos de uma data'),
-      );
-    } on ArgumentError catch (e, s) {
-      log('Erro ao converter json para ScheduleModel', error: e, stackTrace: s);
+    } catch (e) {
       return Failure(
         RepositoryException(
-          message: 'Erro ao converter json para ScheduleModel',
-        ),
+            message: 'Erro ao buscar agendamentos para as datas fornecidas'),
       );
     }
   }

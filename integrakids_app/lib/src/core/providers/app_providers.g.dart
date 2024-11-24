@@ -6,21 +6,7 @@ part of 'app_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$restClientHash() => r'0ee58f1fd102b2016ed621885f1e8d52ed00da66';
-
-/// See also [restClient].
-@ProviderFor(restClient)
-final restClientProvider = Provider<RestClient>.internal(
-  restClient,
-  name: r'restClientProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$restClientHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef RestClientRef = ProviderRef<RestClient>;
-String _$userRepositorieHash() => r'abf4cd67dff5f28dafd24c2bd7535354ee3959e6';
+String _$userRepositorieHash() => r'811739e8e991586ed2c99c417930968430d85dfe';
 
 /// See also [userRepositorie].
 @ProviderFor(userRepositorie)
@@ -35,7 +21,7 @@ final userRepositorieProvider = Provider<UserRepositoryImpl>.internal(
 );
 
 typedef UserRepositorieRef = ProviderRef<UserRepositoryImpl>;
-String _$userLoginServiceHash() => r'c5c59fadeea48493a7c6ad96a13fa2e0821ce9dd';
+String _$userLoginServiceHash() => r'93554e8906ea88c2d45a77b10000f4a4ed1da74a';
 
 /// See also [userLoginService].
 @ProviderFor(userLoginService)
@@ -64,7 +50,7 @@ final getMeProvider = FutureProvider<UserModel>.internal(
 );
 
 typedef GetMeRef = FutureProviderRef<UserModel>;
-String _$clinicaRepositoryHash() => r'ab077dfab954b33f1c6e671b915fbbb93e4fc53a';
+String _$clinicaRepositoryHash() => r'b2d209bad840b20997f8a3cac8beee815ccc3aa7';
 
 /// See also [clinicaRepository].
 @ProviderFor(clinicaRepository)
@@ -93,7 +79,7 @@ final getMyClinicaProvider = FutureProvider<ClinicaModel>.internal(
 );
 
 typedef GetMyClinicaRef = FutureProviderRef<ClinicaModel>;
-String _$logoutHash() => r'12afdaa89bedc9b7ffb1df963220919aa88ff076';
+String _$logoutHash() => r'21c379fefc96a014c61cbfde202f5ba789228af1';
 
 /// See also [logout].
 @ProviderFor(logout)
@@ -108,7 +94,7 @@ final logoutProvider = AutoDisposeFutureProvider<void>.internal(
 
 typedef LogoutRef = AutoDisposeFutureProviderRef<void>;
 String _$scheduleRepositoryHash() =>
-    r'd8bb90e09ddffd4926259e9e2ec796a76739a37d';
+    r'f0fcaaf172f95dd446ca5b625b7897899e75ce8a';
 
 /// See also [scheduleRepository].
 @ProviderFor(scheduleRepository)

@@ -1,7 +1,5 @@
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -9,52 +7,68 @@ import '../../core/exceptions/auth_exception.dart';
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
 import '../../core/fp/nil.dart';
-import '../../core/restClient/rest_client.dart';
 import '../../model/user_model.dart';
 import 'user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final RestClient restClient;
-
-  UserRepositoryImpl({required this.restClient});
-
   @override
   Future<Either<AuthException, String>> login(
       String email, String password) async {
     try {
-      final Response(:data) = await restClient.unauth.post('/auth', data: {
-        'email': email,
-        'password': password,
-      });
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      return Success(data['access_token']);
-    } on DioException catch (e, s) {
-      if (e.response != null) {
-        final Response(:statusCode) = e.response!;
-        if (statusCode == HttpStatus.forbidden) {
-          log('Login ou senha inválidos', error: e, stackTrace: s);
-          return Failure(AuthUnauthorazedException());
-        }
+      String uid = userCredential.user!.uid;
+      return Success(uid);
+    } on FirebaseException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        return Failure(AuthUnauthorazedException());
+      } else {
+        return Failure(
+            AuthError(message: e.message ?? 'Erro ao realizer o login'));
       }
-      log('Erro ao realizar o login', error: e, stackTrace: s);
-      return Failure(AuthError(message: 'Erro ao realizar o login'));
     }
   }
 
   @override
   Future<Either<RepositoryException, UserModel>> me() async {
     try {
-      final Response(:data) = await restClient.auth.get('/me');
-      return Success(UserModel.fromMap(data));
-    } on DioException catch (e, s) {
-      log('Erro ao buscar o usuário logado', error: e, stackTrace: s);
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      log('Current User: ${currentUser?.uid}'); // Log do usuário atual
+
+      if (currentUser != null) {
+        String uid = currentUser.uid;
+        DatabaseReference userRef =
+            FirebaseDatabase.instance.ref().child('users').child(uid);
+
+        log('Tentando obter dados do usuário em: users/$uid'); // Log do caminho
+
+        DataSnapshot snapshot = await userRef.get();
+        log('Snapshot exists: ${snapshot.exists}'); // Log da existência do snapshot
+        if (snapshot.exists) {
+          log('Dados do snapshot: ${snapshot.value}'); // Log dos dados
+          Map<String, dynamic> data =
+              Map<String, dynamic>.from(snapshot.value as Map);
+          data['id'] = uid;
+          UserModel userModel = UserModel.fromMap(data);
+          return Success(userModel);
+        } else {
+          log('Usuário não encontrado no banco');
+          return Failure(
+              RepositoryException(message: 'Usuário não encontrado'));
+        }
+      } else {
+        log('Nenhum usuário logado no Firebase Auth');
+        return Failure(RepositoryException(message: 'Nenhum usuário logado'));
+      }
+    } catch (e, stackTrace) {
+      log('Erro ao obter dados do usuário: $e');
+      log('StackTrace: $stackTrace');
       return Failure(
-          RepositoryException(message: 'Erro ao buscar o usuário logado'));
-    } on ArgumentError catch (e, s) {
-      log('Invalid Json', error: e, stackTrace: s);
-      return Failure(
-        RepositoryException(message: e.message),
-      );
+          RepositoryException(message: 'Erro ao obter dados do usuário'));
     }
   }
 
@@ -72,6 +86,8 @@ class UserRepositoryImpl implements UserRepository {
       final String password = userData.password;
       final String especialidade = userData.especialidade;
 
+      log('Iniciando registro de ADM: $email'); // Log
+
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -79,25 +95,31 @@ class UserRepositoryImpl implements UserRepository {
       );
 
       String uid = userCredential.user!.uid;
+      log('Usuário criado com UID: $uid'); // Log
 
-      DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(uid);
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child('users').child(uid);
 
       Map<String, dynamic> data = {
+        'id': uid, // Adicionar o ID
         'name': name,
         'email': email,
         'especialidade': especialidade,
         'profile': 'ADM',
       };
 
-      await userRef.child(uid).set(data);
+      log('Salvando dados: $data'); // Log
+      await userRef.set(data);
 
       return Success(nil);
     } on FirebaseAuthException catch (e) {
+      log('FirebaseAuthException: ${e.code} - ${e.message}'); // Log
       return Failure(
         RepositoryException(message: e.message ?? 'Erro ao registrar usuário'),
       );
     } catch (e, s) {
-      log('Erro ao registrar o usuário', error: e, stackTrace: s);
+      log('Erro ao registrar o usuário: $e'); // Log
+      log('StackTrace: $s'); // Log
       return Failure(
         RepositoryException(message: 'Erro desconhecido ao registrar usuário'),
       );
@@ -106,25 +128,30 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<Either<RepositoryException, List<UserModel>>> getEmployees(
-      int clinicaId) async {
+      String clinicaId) async {
     try {
-      final Response(:List data) = await restClient.auth.get(
-        '/users',
-        queryParameters: {'clinica_id': clinicaId},
-      );
-      final employees = data.map((e) => UserModelEmployee.fromMap(e)).toList();
-      return Success(employees);
-    } on DioException catch (e, s) {
-      log('Erro ao buscar terapuetas', error: e, stackTrace: s);
-      return Failure(
-        RepositoryException(message: 'Erro ao buscar terapuetas'),
-      );
-    } on ArgumentError catch (e, s) {
-      log('Erro ao converter terapuetas (Ivalid Json)',
-          error: e, stackTrace: s);
-      return Failure(
-        RepositoryException(message: 'Erro ao buscar terapuetas'),
-      );
+      DatabaseReference employeesRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinics')
+          .child(clinicaId.toString())
+          .child('employees');
+
+      DataSnapshot snapshot = await employeesRef.get();
+
+      if (snapshot.exists) {
+        List<UserModel> employees = [];
+        Map<String, dynamic> data =
+            Map<String, dynamic>.from(snapshot.value as Map);
+        data.forEach((key, value) {
+          UserModel user = UserModel.fromMap(Map<String, dynamic>.from(value));
+          employees.add(user);
+        });
+        return Success(employees);
+      } else {
+        return Success([]);
+      }
+    } catch (e) {
+      return Failure(RepositoryException(message: 'Erro ao obter terapeutas'));
     }
   }
 
@@ -134,33 +161,42 @@ class UserRepositoryImpl implements UserRepository {
     try {
       final userModelResult = await me();
 
-      final int userId;
+      final String uid;
 
       switch (userModelResult) {
         case Success(value: UserModel(:var id)):
-          userId = id;
+          uid = id.toString();
         case Failure(:var exception):
           return Failure(exception);
       }
 
-      await restClient.auth.put('/users/$userId', data: {
+      // Referência para o nó de funcionários da clínica do ADM
+      DatabaseReference admRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinica')
+          .child('1') // Ajuste aqui conforme a lógica de clinicaId
+          .child('employees')
+          .child(uid);
+
+      Map<String, dynamic> data = {
         'work_days': userModel.workDays,
         'work_hours': userModel.workHours,
-      });
+        'profile': 'ADM_EMPLOYEE', // Mantemos o papel atualizado
+      };
+
+      await admRef.set(data);
 
       return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao inserir administrador como terapeuta',
-          error: e, stackTrace: s);
-      return Failure(RepositoryException(
-          message: 'Erro ao inserir administrador como terapeuta'));
+    } catch (e) {
+      return Failure(
+          RepositoryException(message: 'Erro ao cadastrar ADM como terapeuta'));
     }
   }
 
   @override
   Future<Either<RepositoryException, Nil>> registerEmployee(
       ({
-        int clinicaId,
+        String clinicaId,
         String email,
         String name,
         String especialidade,
@@ -169,30 +205,44 @@ class UserRepositoryImpl implements UserRepository {
         List<int> workHours
       }) userModel) async {
     try {
-      await restClient.auth.post('/users/', data: {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: userModel.email,
+        password: userModel.password,
+      );
+
+      String uid = userCredential.user!.uid;
+
+      DatabaseReference userRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinics')
+          .child(userModel.clinicaId.toString())
+          .child('employees')
+          .child(uid);
+
+      Map<String, dynamic> data = {
         'name': userModel.name,
-        'especialidade': userModel.especialidade,
         'email': userModel.email,
-        'password': userModel.password,
+        'especialidade': userModel.especialidade,
         'profile': 'EMPLOYEE',
-        'clinica_id': userModel.clinicaId,
         'work_days': userModel.workDays,
         'work_hours': userModel.workHours,
-      });
+      };
+
+      await userRef.set(data);
 
       return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao inserir terapeuta', error: e, stackTrace: s);
-      return Failure(RepositoryException(message: 'Erro ao inserir terapeuta'));
+    } catch (e) {
+      return Failure(
+          RepositoryException(message: 'Erro ao cadastrar terapeuta'));
     }
   }
 
   @override
-  @override
   Future<Either<RepositoryException, Nil>> editEmployee(
       ({
-        int id,
-        int clinicaId,
+        String id,
+        String clinicaId,
         String name,
         String especialidade,
         String email,
@@ -201,36 +251,50 @@ class UserRepositoryImpl implements UserRepository {
         List<int> workHours,
       }) userModel) async {
     try {
+      DatabaseReference employeeRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinica')
+          .child(userModel.clinicaId.toString())
+          .child('employees')
+          .child(userModel.id.toString());
+
       final data = {
         'name': userModel.name,
         'especialidade': userModel.especialidade,
         'email': userModel.email,
-        'profile': 'EMPLOYEE',
-        'clinica_id': userModel.clinicaId,
         'work_days': userModel.workDays,
         'work_hours': userModel.workHours,
       };
+
       if (userModel.password != null && userModel.password!.isNotEmpty) {
         data['password'] = userModel.password as String;
       }
 
-      await restClient.auth.put('/users/${userModel.id}', data: data);
+      await employeeRef.update(data);
 
       return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao editar terapeuta', error: e, stackTrace: s);
-      return Failure(RepositoryException(message: 'Erro ao editar terapeuta'));
+    } catch (e) {
+      return Failure(
+          RepositoryException(message: 'Erro ao editar funcionário.'));
     }
   }
 
   @override
-  Future<Either<RepositoryException, Nil>> deleteEmployee(int id) async {
+  Future<Either<RepositoryException, Nil>> deleteEmployee(String id) async {
     try {
-      await restClient.auth.delete('/users/$id');
+      DatabaseReference employeeRef = FirebaseDatabase.instance
+          .ref()
+          .child('clinica')
+          .child('1')
+          .child('employees')
+          .child(id.toString());
+
+      await employeeRef.remove();
+
       return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao deletar terapeuta', error: e, stackTrace: s);
-      return Failure(RepositoryException(message: 'Erro ao deletar terapeuta'));
+    } catch (e) {
+      return Failure(
+          RepositoryException(message: 'Erro ao excluir funcionário.'));
     }
   }
 }

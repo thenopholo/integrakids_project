@@ -1,6 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
-enum LoginStateStatus { initial, error, admLogin, employeeLogin }
+enum LoginStateStatus { 
+  initial, 
+  loading,
+  error, 
+  admLogin, 
+  employeeLogin 
+}
 
 class LoginState {
   final LoginStateStatus status;

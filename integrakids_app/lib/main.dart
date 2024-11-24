@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -14,6 +15,9 @@ Future<void> main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      FirebaseDatabase database = FirebaseDatabase.instance;
+      database.setPersistenceEnabled(true); // Opcional, se você quiser persistência offline
+      database.setLoggingEnabled(true); // Habilita o logging
     }
   } catch (e) {
     debugPrint('Erro ao inicializar o Firebase: $e');

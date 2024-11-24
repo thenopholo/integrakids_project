@@ -1,37 +1,34 @@
-import 'dart:developer';
 
-import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
 import '../../core/fp/nil.dart';
-import '../../core/restClient/rest_client.dart';
 import '../../model/clinica_model.dart';
 import '../../model/user_model.dart';
 import 'clinica_reposiotry.dart';
 
 class ClinicaRepositoryImpl implements ClinicaRepository {
-  final RestClient restClient;
-  ClinicaRepositoryImpl({
-    required this.restClient,
-  });
 
   @override
   Future<Either<RepositoryException, ClinicaModel>> getMyClinica(
       UserModel userModel) async {
-    switch (userModel) {
-      case UserModelADM():
-        final Response(data: List(first: data)) = await restClient.auth.get(
-          '/clinica',
-          queryParameters: {'user_id': '#userAuthRef'},
-        );
-        return Success(ClinicaModel.fromMap(data));
-
-      case UserModelEmployee():
-        final Response(:data) = await restClient.auth.get(
-          '/clinica/${userModel.clinicaId}',
-        );
-        return Success(ClinicaModel.fromMap(data));
+    try {
+      String uid = FirebaseAuth.instance.currentUser!.uid;
+      DatabaseReference clinicaRef =
+          FirebaseDatabase.instance.ref().child('clinics').child(uid);
+      DataSnapshot snapshot = await clinicaRef.get();
+      if (snapshot.exists) {
+        Map<String, dynamic> data =
+            Map<String, dynamic>.from(snapshot.value as Map);
+        ClinicaModel clinica = ClinicaModel.fromMap(data);
+        return Success(clinica);
+      } else {
+        return Failure(RepositoryException(message: 'Clínica não encontrada'));
+      }
+    } catch (e) {
+      return Failure(RepositoryException(message: 'Erro ao obter clínica'));
     }
   }
 
@@ -44,24 +41,25 @@ class ClinicaRepositoryImpl implements ClinicaRepository {
         List<int> openHours,
       }) data) async {
     try {
-      await restClient.auth.post(
-        '/clinica',
-        data: {
-          'user_id': '#userAuthRef',
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        String uid = currentUser.uid;
+        DatabaseReference clinicaRef =
+            FirebaseDatabase.instance.ref().child('clinics').child(uid);
+
+        await clinicaRef.set({
           'name': data.name,
           'email': data.email,
-          'opening_days': data.openDays,
-          'opening_hours': data.openHours,
-        },
-      );
-      return Success(nil);
-    } on DioException catch (e, s) {
-      log('Erro ao registrar Cliníca', error: e, stackTrace: s);
-      return Failure(
-        RepositoryException(
-          message: 'Erro ao registrar Cliníca',
-        ),
-      );
+          'openDays': data.openDays,
+          'openHours': data.openHours,
+        });
+
+        return Success(nil);
+      } else {
+        return Failure(RepositoryException(message: 'Usuário não autenticado'));
+      }
+    } catch (e) {
+      return Failure(RepositoryException(message: 'Erro ao salvar clínica'));
     }
   }
 }

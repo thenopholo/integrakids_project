@@ -1,6 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../model/clinica_model.dart';
 import '../../model/user_model.dart';
@@ -12,21 +12,18 @@ import '../../repositories/user/user_repository_impl.dart';
 import '../../services/user_login/user_login_service.dart';
 import '../../services/user_login/user_login_service_impl.dart';
 import '../fp/either.dart';
-import '../restClient/rest_client.dart';
 import '../ui/widgets/clinica_nav_global_key.dart';
 
 part 'app_providers.g.dart';
 
-@Riverpod(keepAlive: true)
-RestClient restClient(RestClientRef ref) => RestClient();
+
 
 @Riverpod(keepAlive: true)
-UserRepositoryImpl userRepositorie(UserRepositorieRef ref) =>
-    UserRepositoryImpl(restClient: ref.read(restClientProvider));
+UserRepositoryImpl userRepositorie(UserRepositorieRef ref) => UserRepositoryImpl();
 
 @Riverpod(keepAlive: true)
 UserLoginService userLoginService(UserLoginServiceRef ref) =>
-    UserLoginServiceImpl(userRepositorie: ref.read(userRepositorieProvider));
+    UserLoginServiceImpl();
 
 @Riverpod(keepAlive: true)
 Future<UserModel> getMe(GetMeRef ref) async {
@@ -39,10 +36,7 @@ Future<UserModel> getMe(GetMeRef ref) async {
 }
 
 @Riverpod(keepAlive: true)
-ClinicaRepository clinicaRepository(ClinicaRepositoryRef ref) =>
-    ClinicaRepositoryImpl(
-      restClient: ref.watch(restClientProvider),
-    );
+ClinicaRepository clinicaRepository(ClinicaRepositoryRef ref) => ClinicaRepositoryImpl();
 
 @Riverpod(keepAlive: true)
 Future<ClinicaModel> getMyClinica(GetMyClinicaRef ref) async {
@@ -58,8 +52,7 @@ Future<ClinicaModel> getMyClinica(GetMyClinicaRef ref) async {
 
 @riverpod
 Future<void> logout(LogoutRef ref) async {
-  final sp = await SharedPreferences.getInstance();
-  sp.clear();
+  await FirebaseAuth.instance.signOut();
 
   ref.invalidate(getMeProvider);
   ref.invalidate(getMyClinicaProvider);
@@ -69,7 +62,4 @@ Future<void> logout(LogoutRef ref) async {
 }
 
 @riverpod
-ScheduleRepository scheduleRepository(ScheduleRepositoryRef ref) =>
-    ScheduleRepositoryImpl(
-      restClient: ref.read(restClientProvider),
-    );
+ScheduleRepository scheduleRepository(ScheduleRepositoryRef ref) => ScheduleRepositoryImpl();

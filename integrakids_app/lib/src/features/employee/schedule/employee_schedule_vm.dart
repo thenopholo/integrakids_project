@@ -10,13 +10,13 @@ part 'employee_schedule_vm.g.dart';
 @riverpod
 class EmployeeScheduleVm extends _$EmployeeScheduleVm {
   Future<Either<RepositoryException, List<ScheduleModel>>> _getSchedules(
-      int userId, List<DateTime> dates) {  // Alterado para aceitar uma lista de datas
+      String userId, List<DateTime> dates) {  // Alterado para aceitar uma lista de datas
     final repository = ref.read(scheduleRepositoryProvider);
-    return repository.findScheduleByDate((dates: dates, userId: userId));  // Enviando a lista de datas
+    return repository.findScheduleByDate((dates: dates, userId: userId)); 
   }
 
   @override
-  Future<List<ScheduleModel>> build(int userId, DateTime date) async {
+  Future<List<ScheduleModel>> build(String userId, DateTime date) async {
     // Cria uma lista de datas com a única data
     final scheduleListResult = await _getSchedules(userId, [date]);
     return switch (scheduleListResult) {
@@ -25,8 +25,8 @@ class EmployeeScheduleVm extends _$EmployeeScheduleVm {
     };
   }
 
-  Future<void> changeDate(int userId, DateTime date) async {
-    final scheduleListResult = await _getSchedules(userId, [date]);  // Enviando a lista com a única data
+  Future<void> changeDate(String userId, DateTime date) async {
+    final scheduleListResult = await _getSchedules(userId, [date]);
     state = switch (scheduleListResult) {
       Success(value: final schedules) => AsyncData(schedules),
       Failure(:final exception) =>

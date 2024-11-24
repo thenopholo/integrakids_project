@@ -1,5 +1,5 @@
 sealed class UserModel {
-  final int id;
+  final String id;
   final String name;
   final String especialidade;
   final String email;
@@ -14,11 +14,16 @@ sealed class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> json) {
-    return switch (json['profile']) {
-      'ADM' => UserModelADM.fromMap(json),
-      'EMPLOYEE' => UserModelEmployee.fromMap(json),
-      _ => throw ArgumentError('User Profile Not Found')
-    };
+    final profile = json['profile'] as String?;
+
+    switch (profile) {
+      case 'ADM':
+        return UserModelADM.fromMap(json);
+      case 'EMPLOYEE':
+        return UserModelEmployee.fromMap(json);
+      default:
+        throw ArgumentError('User Profile Not Found: $profile');
+    }
   }
 }
 
@@ -39,7 +44,7 @@ class UserModelADM extends UserModel {
   factory UserModelADM.fromMap(Map<String, dynamic> json) {
     return switch (json) {
       {
-        'id': int id,
+        'id': String id,
         'name': String name,
         'especialidade': String especialidade,
         'email': String email,
@@ -59,7 +64,7 @@ class UserModelADM extends UserModel {
 }
 
 class UserModelEmployee extends UserModel {
-  final int clinicaId;
+  final String clinicaId;
   final List<String> workDays;
   final List<int> workHours;
 
@@ -77,11 +82,11 @@ class UserModelEmployee extends UserModel {
   factory UserModelEmployee.fromMap(Map<String, dynamic> json) {
     return switch (json) {
       {
-        'id': final int id,
+        'id': final String id,
         'name': final String name,
         'especialidade': final String especialidade,
         'email': final String email,
-        'clinica_id': final int clinicaId,
+        'clinica_id': final String clinicaId,
         'work_days': final List workDays,
         'work_hours': final List workHours,
       } =>

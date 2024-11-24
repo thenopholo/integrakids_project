@@ -36,6 +36,7 @@ class UserResgisterVm extends _$UserResgisterVm {
     );
 
     final registerResult = await userRegisterAdmService.execute(userDTO);
+    
     switch (registerResult) {
       case Success():
         ref.invalidate(getMeProvider);

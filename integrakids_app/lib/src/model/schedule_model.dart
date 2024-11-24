@@ -2,9 +2,9 @@ import 'patient_model.dart';
 import 'tutor_model.dart';
 
 class ScheduleModel {
-  final int id;
-  final int clinicaId;
-  final int userId;
+  final String id;
+  final String clinicaId;
+  final String userId;
   final PatientModel patient;
   final TutorModel tutor;
   final String appointmentRoom;
@@ -32,7 +32,7 @@ class ScheduleModel {
         clinicaId: json['clinica_id'] ?? 0,
         userId: json['user_id'] ?? 0,
         patient: PatientModel(
-          id: 0,
+          id: '0',
           name: json['patient_name'] ?? 'Desconhecido',
           tutor: TutorModel(
             name: json['tutor_name'] ?? 'Sem Tutor',

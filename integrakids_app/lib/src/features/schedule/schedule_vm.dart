@@ -62,7 +62,7 @@ class ScheduleVm extends _$ScheduleVm {
 
     final scheduleRepository = ref.read(scheduleRepositoryProvider);
     final ClinicaModel clinica = await ref.watch(getMyClinicaProvider.future);
-    final int clinicaId = clinica.id;
+    final String clinicaId = clinica.id;
 
     List<DateTime> dates = [];
     if (recurrenceType == RecurrenceType.none) {
@@ -186,7 +186,7 @@ class ScheduleVm extends _$ScheduleVm {
     List<ScheduleModel> schedules,
     DateTime date,
     int selectedTimeMinutes,
-    int userId,
+    String userId,
   ) {
     for (var schedule in schedules) {
       final scheduleDate = schedule.dates.firstWhere(

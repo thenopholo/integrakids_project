@@ -97,7 +97,7 @@ void setWorkHours(List<int> workHours) {
 
 
   Future<void> edit(
-      {required int id,
+      {required String id,
       String? name,
       String? email,
       String? password,

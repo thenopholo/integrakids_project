@@ -18,7 +18,7 @@ abstract interface class UserRepository {
       }) userData);
 
   Future<Either<RepositoryException, List<UserModel>>> getEmployees(
-      int clinicaId);
+      String clinicaId);
 
   Future<Either<RepositoryException, Nil>> registerADMAsEmployee(
       ({
@@ -28,7 +28,7 @@ abstract interface class UserRepository {
 
   Future<Either<RepositoryException, Nil>> registerEmployee(
       ({
-        int clinicaId,
+        String clinicaId,
         String name,
         String especialidade,
         String email,
@@ -39,8 +39,8 @@ abstract interface class UserRepository {
 
 Future<Either<RepositoryException, Nil>> editEmployee(
   ({
-    int id,
-    int clinicaId,
+    String id,
+    String clinicaId,
     String name,
     String especialidade,
     String email,
@@ -50,5 +50,5 @@ Future<Either<RepositoryException, Nil>> editEmployee(
   }) userModel);
 
 
-  Future<Either<RepositoryException, Nil>> deleteEmployee(int id);
+  Future<Either<RepositoryException, Nil>> deleteEmployee(String id);
 }

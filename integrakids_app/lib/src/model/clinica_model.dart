@@ -1,5 +1,5 @@
 class ClinicaModel {
-  final int id;
+  final String id;
   final String name;
   final String email;
   final List<String> openingDays;
@@ -16,7 +16,7 @@ class ClinicaModel {
   factory ClinicaModel.fromMap(Map<String, dynamic> json) {
     return switch (json) {
       {
-        'id': int id,
+        'id': String id,
         'name': String name,
         'email': String email,
         'opening_days': final List openingDays,

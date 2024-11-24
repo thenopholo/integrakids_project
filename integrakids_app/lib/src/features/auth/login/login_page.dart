@@ -129,14 +129,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              switch (formKey.currentState?.validate()) {
-                                case (false || null):
-                                  Messages.showError(
-                                      'Campos inválidos', context);
-                                  break;
-                                case true:
-                                  login(emailEC.text, passwordEC.text);
-                                  break;
+                              if (formKey.currentState?.validate() ?? false) {
+                                // O formulário é válido, prosseguir com o login
+                                login(emailEC.text, passwordEC.text);
+                              } else {
+                                // O formulário é inválido, exibir mensagem de erro
+                                Messages.showError('Campos inválidos', context);
                               }
                             },
                             style: ElevatedButton.styleFrom(
