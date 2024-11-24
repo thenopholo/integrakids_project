@@ -40,14 +40,26 @@ ClinicaRepository clinicaRepository(ClinicaRepositoryRef ref) => ClinicaReposito
 
 @Riverpod(keepAlive: true)
 Future<ClinicaModel> getMyClinica(GetMyClinicaRef ref) async {
-  final userModel = await ref.watch(getMeProvider.future);
-  final clinicaRepository = ref.watch(clinicaRepositoryProvider);
-  final result = await clinicaRepository.getMyClinica(userModel);
+  try {
+    final userModel = await ref.watch(getMeProvider.future);
+    final clinicaRepository = ref.watch(clinicaRepositoryProvider);
+    final result = await clinicaRepository.getMyClinica(userModel);
 
-  return switch (result) {
-    Success(value: final clinica) => clinica,
-    Failure(:final exception) => throw exception,
-  };
+    return switch (result) {
+      Success(value: final clinica) => clinica,
+      Failure(:final exception) => throw exception,
+    };
+  } catch (e) {
+    // Se não encontrar a clínica, retorna uma clínica vazia com o ID do usuário
+    final userModel = await ref.watch(getMeProvider.future);
+    return ClinicaModel(
+      id: userModel.id,
+      name: '',
+      email: '',
+      openDays: [],
+      openHours: [],
+    );
+  }
 }
 
 @riverpod

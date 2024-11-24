@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:asyncstate/asyncstate.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -5,8 +7,7 @@ import '../../../core/exceptions/repository_exception.dart';
 import '../../../core/fp/either.dart';
 import '../../../core/fp/nil.dart';
 import '../../../core/providers/app_providers.dart';
-import '../../../model/clinica_model.dart';
-import '../../../repositories/user/user_repository.dart';
+import '../../home/adm/widgets/home_adm_vm.dart';
 import 'employee_register_state.dart';
 
 part 'employee_register_vm.g.dart';
@@ -44,57 +45,86 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
     state = state.copyWith(workHours: workHours);
   }
 
-  Future<void> register(
-      {String? name,
-      String? email,
-      String? password,
-      String? especialidade}) async {
-    final EmployeeRegisterState(:registerADM, :workDays, :workHours) = state;
-    final asyncLoaderHandler = AsyncLoaderHandler()..start();
+  Future<void> register({
+    String? name,
+    String? email,
+    String? password,
+    String? especialidade,
+  }) async {
+    try {
+      final EmployeeRegisterState(:registerADM, :workDays, :workHours) = state;
+      final asyncLoaderHandler = AsyncLoaderHandler()..start();
 
-    final UserRepository(:registerADMAsEmployee, :registerEmployee) =
-        ref.read(userRepositorieProvider);
+      // Obtém a clínica antes de qualquer operação
+      final clinicaModel = await ref.read(getMyClinicaProvider.future);
+      final clinicaId = clinicaModel.id;
 
-    final Either<RepositoryException, Nil> resultRegister;
+      final userRepository = ref.read(userRepositorieProvider);
+      final Either<RepositoryException, Nil> resultRegister;
 
-    if (registerADM) {
-      final dto = (
-        workDays: workDays,
-        workHours: workHours,
-      );
-      resultRegister = await registerADMAsEmployee(dto);
-    } else {
-      final ClinicaModel(:id) = await ref.watch(getMyClinicaProvider.future);
-      final dto = (
-        clinicaId: id,
-        name: name!,
-        especialidade: especialidade!,
-        email: email!,
-        password: password!,
-        workDays: workDays,
-        workHours: workHours,
-      );
+      if (registerADM) {
+        if (workDays.isEmpty || workHours.isEmpty) {
+          state = state.copyWith(status: EmployeeRegisterStateStatus.error);
+          asyncLoaderHandler.close();
+          return;
+        }
 
-      resultRegister = await registerEmployee(dto);
+        final dto = (
+          workDays: workDays,
+          workHours: workHours,
+        );
+
+        resultRegister =
+            await userRepository.registerADMAsEmployee(dto, clinicaId);
+      } else {
+        if (name == null ||
+            email == null ||
+            password == null ||
+            especialidade == null) {
+          state = state.copyWith(status: EmployeeRegisterStateStatus.error);
+          asyncLoaderHandler.close();
+          return;
+        }
+
+        final dto = (
+          clinicaId: clinicaId,
+          name: name,
+          especialidade: especialidade,
+          email: email,
+          password: password,
+          workDays: workDays,
+          workHours: workHours,
+        );
+
+        resultRegister = await userRepository.registerEmployee(dto);
+      }
+
+      switch (resultRegister) {
+        case Success():
+          // Invalidar os providers na ordem correta
+          ref.invalidate(getMeProvider);
+          ref.invalidate(getMyClinicaProvider);
+          ref.invalidate(homeAdmVmProvider);
+          state = state.copyWith(status: EmployeeRegisterStateStatus.success);
+        case Failure():
+          state = state.copyWith(status: EmployeeRegisterStateStatus.error);
+      }
+
+      asyncLoaderHandler.close();
+    } catch (e, s) {
+      log('Erro ao registrar: $e');
+      log('StackTrace: $s');
+      state = state.copyWith(status: EmployeeRegisterStateStatus.error);
     }
-
-    switch (resultRegister) {
-      case Success():
-        state = state.copyWith(status: EmployeeRegisterStateStatus.success);
-      case Failure():
-        state = state.copyWith(status: EmployeeRegisterStateStatus.error);
-    }
-    asyncLoaderHandler.close();
   }
 
   void setWorkDays(List<String> workDays) {
-  state = state.copyWith(workDays: List.from(workDays));
-}
+    state = state.copyWith(workDays: List.from(workDays));
+  }
 
-void setWorkHours(List<int> workHours) {
-  state = state.copyWith(workHours: List.from(workHours));
-}
-
+  void setWorkHours(List<int> workHours) {
+    state = state.copyWith(workHours: List.from(workHours));
+  }
 
   Future<void> edit(
       {required String id,

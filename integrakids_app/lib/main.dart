@@ -16,8 +16,8 @@ Future<void> main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       FirebaseDatabase database = FirebaseDatabase.instance;
-      database.setPersistenceEnabled(true); // Opcional, se você quiser persistência offline
-      database.setLoggingEnabled(true); // Habilita o logging
+      database.setPersistenceEnabled(true);
+      database.setLoggingEnabled(true);
     }
   } catch (e) {
     debugPrint('Erro ao inicializar o Firebase: $e');

@@ -17,7 +17,16 @@ class HomeAdmPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(getMeProvider, (previous, next) {
+      ref.invalidate(homeAdmVmProvider);
+    });
     final homeState = ref.watch(homeAdmVmProvider);
+    final clinicaState = ref.watch(getMyClinicaProvider);
+
+    // Debug log para monitorar mudanças
+    clinicaState.whenData((clinica) {
+      log('Estado atual da clínica: ${clinica.name}');
+    });
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(

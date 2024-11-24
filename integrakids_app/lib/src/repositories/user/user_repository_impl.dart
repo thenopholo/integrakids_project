@@ -130,64 +130,86 @@ class UserRepositoryImpl implements UserRepository {
   Future<Either<RepositoryException, List<UserModel>>> getEmployees(
       String clinicaId) async {
     try {
+      log('Buscando funcionários da clínica: $clinicaId');
       DatabaseReference employeesRef = FirebaseDatabase.instance
           .ref()
           .child('clinics')
-          .child(clinicaId.toString())
+          .child(clinicaId)
           .child('employees');
 
       DataSnapshot snapshot = await employeesRef.get();
+      log('Snapshot exists: ${snapshot.exists}');
 
       if (snapshot.exists) {
         List<UserModel> employees = [];
         Map<String, dynamic> data =
             Map<String, dynamic>.from(snapshot.value as Map);
+
+        log('Dados dos funcionários: $data');
+
         data.forEach((key, value) {
-          UserModel user = UserModel.fromMap(Map<String, dynamic>.from(value));
+          Map<String, dynamic> employeeData = Map<String, dynamic>.from(value);
+          // Garantir que o ID está presente
+          employeeData['id'] = key;
+          log('Processando funcionário: $employeeData');
+          UserModel user = UserModel.fromMap(employeeData);
           employees.add(user);
         });
+
+        log('Total de funcionários encontrados: ${employees.length}');
         return Success(employees);
       } else {
+        log('Nenhum funcionário encontrado');
         return Success([]);
       }
-    } catch (e) {
+    } catch (e, s) {
+      log('Erro ao obter terapeutas: $e');
+      log('StackTrace: $s');
       return Failure(RepositoryException(message: 'Erro ao obter terapeutas'));
     }
   }
 
   @override
   Future<Either<RepositoryException, Nil>> registerADMAsEmployee(
-      ({List<String> workDays, List<int> workHours}) userModel) async {
+      ({List<String> workDays, List<int> workHours}) userModelData,
+      String clinicaId) async {
     try {
       final userModelResult = await me();
 
-      final String uid;
-
       switch (userModelResult) {
-        case Success(value: UserModel(:var id)):
-          uid = id.toString();
-        case Failure(:var exception):
+        case Success(value: final userModel):
+          final uid = userModel.id;
+
+          // Referência para o nó de funcionários da clínica
+          DatabaseReference admRef = FirebaseDatabase.instance
+              .ref()
+              .child('clinics')
+              .child(clinicaId)
+              .child('employees')
+              .child(uid);
+
+          Map<String, dynamic> data = {
+            'id': uid,
+            'name': userModel.name,
+            'email': userModel.email,
+            'especialidade': userModel.especialidade,
+            'work_days': userModelData.workDays,
+            'work_hours': userModelData.workHours,
+            'profile': 'ADM_EMPLOYEE',
+            'clinica_id': clinicaId,
+          };
+
+          log('Salvando ADM como employee: $data');
+          await admRef.set(data);
+
+          return Success(nil);
+
+        case Failure(:final exception):
           return Failure(exception);
       }
-
-      // Referência para o nó de funcionários da clínica do ADM
-      DatabaseReference admRef = FirebaseDatabase.instance
-          .ref()
-          .child('clinica')
-          .child('1') // Ajuste aqui conforme a lógica de clinicaId
-          .child('employees')
-          .child(uid);
-
-      Map<String, dynamic> data = {
-        'work_days': userModel.workDays,
-        'work_hours': userModel.workHours,
-        'profile': 'ADM_EMPLOYEE', // Mantemos o papel atualizado
-      };
-
-      await admRef.set(data);
-
-      return Success(nil);
-    } catch (e) {
+    } catch (e, s) {
+      log('Erro ao cadastrar ADM como terapeuta: $e');
+      log('StackTrace: $s');
       return Failure(
           RepositoryException(message: 'Erro ao cadastrar ADM como terapeuta'));
     }

@@ -13,29 +13,44 @@ part 'home_adm_vm.g.dart';
 class HomeAdmVm extends _$HomeAdmVm {
   @override
   Future<HomeAdmState> build() async {
-    final repository = ref.read(userRepositorieProvider);
-    final ClinicaModel(id: clinicaId) =
-        await ref.read(getMyClinicaProvider.future);
-    final me = await ref.watch(getMeProvider.future);
+    try {
+      final repository = ref.read(userRepositorieProvider);
+      final me = await ref.watch(getMeProvider.future);
+      
+      // Tenta obter a clínica, mas não falha se não encontrar
+      final clinicaModel = await ref.read(getMyClinicaProvider.future)
+          .catchError((e) => ClinicaModel(
+                id: me.id, // Usa o ID do usuário como ID da clínica
+                name: '',
+                email: '',
+                openDays: [],
+                openHours: [],
+              ));
 
-    final employeesResult = await repository.getEmployees(clinicaId);
+      final employeesResult = await repository.getEmployees(clinicaModel.id);
 
-    switch (employeesResult) {
-      case Success(value: final employeesData):
-        final employees = <UserModel>[];
-        if (me case UserModelADM(workDays: _?, workHours: _?)) {
-          employees.add(me);
-        }
-        employees.addAll(employeesData);
-        return HomeAdmState(
-          status: HomeAdmStatus.loaded,
-          employees: employees,
-        );
-      case Failure():
-        return HomeAdmState(
-          status: HomeAdmStatus.error,
-          employees: [],
-        );
+      switch (employeesResult) {
+        case Success(value: final employeesData):
+          final employees = <UserModel>[];
+          if (me case UserModelADM(workDays: _?, workHours: _?)) {
+            employees.add(me);
+          }
+          employees.addAll(employeesData);
+          return HomeAdmState(
+            status: HomeAdmStatus.loaded,
+            employees: employees,
+          );
+        case Failure():
+          return HomeAdmState(
+            status: HomeAdmStatus.loaded, // Mudado para loaded pois ainda queremos mostrar o ADM
+            employees: [me], // Inclui apenas o ADM na lista
+          );
+      }
+    } catch (e) {
+      return HomeAdmState(
+        status: HomeAdmStatus.error,
+        employees: [],
+      );
     }
   }
 

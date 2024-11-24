@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,6 +49,7 @@ class HomeHeader extends ConsumerWidget {
           ),
           clinica.maybeWhen(
             data: (clinicaData) {
+              log('Daddos recebidos da clínica: ${clinicaData.name}');
               return Row(
                 children: [
                   const CircleAvatar(

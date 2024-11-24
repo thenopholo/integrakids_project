@@ -16,6 +16,7 @@ import '../../../core/ui/widgets/integrakids_loader.dart';
 import '../../../core/ui/widgets/weekdays_panel.dart';
 import '../../../model/clinica_model.dart';
 import '../../../model/user_model.dart';
+import '../../home/adm/widgets/home_adm_vm.dart';
 import 'employee_register_state.dart';
 import 'employee_register_vm.dart';
 
@@ -77,6 +78,8 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
               ? 'Terapeuta atualizado com sucesso'
               : 'Terapeuta cadastrado com sucesso';
           Messages.showSuccess(message, context);
+          ref.invalidate(homeAdmVmProvider);
+          ref.invalidate(getMeProvider);
           Navigator.of(context).pop();
           break;
         case EmployeeRegisterStateStatus.error:
@@ -114,7 +117,7 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
           },
           loading: () => const IntegrakidsLoader(),
           data: (clinicaModel) {
-            final ClinicaModel(:openingDays, :openingHours) = clinicaModel;
+            final ClinicaModel(:openDays, :openHours) = clinicaModel;
 
             return SingleChildScrollView(
               child: Padding(
@@ -228,14 +231,14 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                           height: 24,
                         ),
                         WeekdaysPanel(
-                          enableDays: openingDays,
+                          enableDays: openDays,
                           onDayPressed: employeeRegisterVm.addOrRemoveWorkDays,
                         ),
                         const SizedBox(
                           height: 24,
                         ),
                         HoursPanel(
-                          enableHours: openingHours,
+                          enableHours: openHours,
                           startTime: 6,
                           endTime: 23,
                           onTimePressed:

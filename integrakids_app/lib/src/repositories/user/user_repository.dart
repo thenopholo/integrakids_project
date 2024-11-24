@@ -24,7 +24,7 @@ abstract interface class UserRepository {
       ({
         List<String> workDays,
         List<int> workHours,
-      }) userModel);
+      }) userModel, String clinicaId);
 
   Future<Either<RepositoryException, Nil>> registerEmployee(
       ({

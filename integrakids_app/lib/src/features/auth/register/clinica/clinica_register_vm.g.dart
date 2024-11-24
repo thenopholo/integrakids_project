@@ -6,7 +6,7 @@ part of 'clinica_register_vm.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$clinicaRegisterVmHash() => r'604a8f89b875fcf09e262bfb18ec85c54193b433';
+String _$clinicaRegisterVmHash() => r'6f38f6a08c03e6faf23bae056d3a8c4ad54d68df';
 
 /// See also [ClinicaRegisterVm].
 @ProviderFor(ClinicaRegisterVm)

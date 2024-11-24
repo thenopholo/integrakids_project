@@ -65,7 +65,7 @@ final clinicaRepositoryProvider = Provider<ClinicaRepository>.internal(
 );
 
 typedef ClinicaRepositoryRef = ProviderRef<ClinicaRepository>;
-String _$getMyClinicaHash() => r'b1d7ab4d957ea48e53bf1bca261b16ff2f00b641';
+String _$getMyClinicaHash() => r'31cdd6351e708c6aa0611c6e94b7bdbfada6b82d';
 
 /// See also [getMyClinica].
 @ProviderFor(getMyClinica)

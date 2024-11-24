@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -11,26 +13,38 @@ import 'clinica_reposiotry.dart';
 
 class ClinicaRepositoryImpl implements ClinicaRepository {
 
-  @override
-  Future<Either<RepositoryException, ClinicaModel>> getMyClinica(
-      UserModel userModel) async {
-    try {
-      String uid = FirebaseAuth.instance.currentUser!.uid;
-      DatabaseReference clinicaRef =
-          FirebaseDatabase.instance.ref().child('clinics').child(uid);
-      DataSnapshot snapshot = await clinicaRef.get();
-      if (snapshot.exists) {
-        Map<String, dynamic> data =
-            Map<String, dynamic>.from(snapshot.value as Map);
-        ClinicaModel clinica = ClinicaModel.fromMap(data);
-        return Success(clinica);
-      } else {
-        return Failure(RepositoryException(message: 'Clínica não encontrada'));
-      }
-    } catch (e) {
-      return Failure(RepositoryException(message: 'Erro ao obter clínica'));
+@override
+Future<Either<RepositoryException, ClinicaModel>> getMyClinica(
+    UserModel userModel) async {
+  try {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    DatabaseReference clinicaRef =
+        FirebaseDatabase.instance.ref().child('clinics').child(uid);
+        
+    // Adicionar logs para debug
+    log('Buscando clínica para uid: $uid');
+    
+    DataSnapshot snapshot = await clinicaRef.get();
+    log('Snapshot exists: ${snapshot.exists}');
+    if (snapshot.exists) {
+      log('Dados do snapshot: ${snapshot.value}');
+      
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      data['id'] = uid; // Adicionar o ID
+      
+      log('Dados formatados: $data');
+      
+      ClinicaModel clinica = ClinicaModel.fromMap(data);
+      return Success(clinica);
+    } else {
+      return Failure(RepositoryException(message: 'Clínica não encontrada'));
     }
+  } catch (e, s) {
+    log('Erro ao obter clínica: $e');
+    log('StackTrace: $s');
+    return Failure(RepositoryException(message: 'Erro ao obter clínica'));
   }
+}
 
   @override
   Future<Either<RepositoryException, Nil>> save(
