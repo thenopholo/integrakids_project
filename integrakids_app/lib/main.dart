@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +22,7 @@ Future<void> main() async {
       database.setLoggingEnabled(true);
     }
   } catch (e) {
-    debugPrint('Erro ao inicializar o Firebase: $e');
+    log('Erro ao inicializar o Firebase: $e');
   }
   runApp(
     const ProviderScope(

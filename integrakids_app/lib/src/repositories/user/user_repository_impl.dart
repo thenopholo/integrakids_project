@@ -320,7 +320,7 @@ class UserRepositoryImpl implements UserRepository {
     try {
       DatabaseReference employeeRef = FirebaseDatabase.instance
           .ref()
-          .child('clinica')
+          .child('clinics')
           .child(userModel.clinicaId.toString())
           .child('employees')
           .child(userModel.id.toString());

@@ -4,24 +4,23 @@ import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:validatorless/validatorless.dart';
-import '../../core/ui/helpers/form_helper.dart';
+
 import '../../core/ui/helpers/messages.dart';
 import '../../core/ui/utils/app_colors.dart';
 import '../../core/ui/utils/app_font.dart';
 import '../../core/ui/widgets/avatar_widget.dart';
-import '../../core/ui/widgets/hours_panel.dart';
+
 import '../../core/ui/widgets/integrakids_icons.dart';
 import '../../model/patient_model.dart';
-import '../../model/tutor_model.dart';
+
 import '../../model/user_model.dart';
 import 'schedule_state.dart';
 import 'schedule_vm.dart';
-import 'widgets/schedule_calendar.dart';
+
 
 class SchedulePage extends ConsumerStatefulWidget {
   const SchedulePage({super.key});
