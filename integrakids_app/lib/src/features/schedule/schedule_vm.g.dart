@@ -6,7 +6,7 @@ part of 'schedule_vm.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$scheduleVmHash() => r'7dc3176d055055293670d018821670ea994b4ef9';
+String _$scheduleVmHash() => r'f7be48756b515336f8907a175ab4a65f1979b839';
 
 /// See also [ScheduleVm].
 @ProviderFor(ScheduleVm)

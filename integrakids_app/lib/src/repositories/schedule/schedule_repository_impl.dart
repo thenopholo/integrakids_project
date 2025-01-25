@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +13,6 @@ import '../../model/tutor_model.dart';
 import './schedule_repository.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
-
   @override
   Future<Either<RepositoryException, Nil>> schedulePatient(
       ({
@@ -25,22 +27,45 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       DatabaseReference schedulesRef =
           FirebaseDatabase.instance.ref().child('schedules');
+
+      log('Iniciando registro de agendamentos: ${scheduleData.dates}');
+
       for (DateTime date in scheduleData.dates) {
+        // Validar se a data está no futuro
+        if (date.isBefore(DateTime.now())) {
+          log('Data inválida (no passado): ${date.toIso8601String()}');
+          continue; // Ignorar esta data
+        }
+
         String scheduleKey = schedulesRef.push().key!;
-        await schedulesRef.child(scheduleKey).set({
+        Map<String, dynamic> schedule = {
           'clinicaId': scheduleData.clinicaId,
           'userId': scheduleData.userId,
+          'patientId': scheduleData.patient.id,
           'patientName': scheduleData.patient.name,
           'tutorName': scheduleData.tutor.name,
           'tutorPhone': scheduleData.tutor.phone,
           'appointmentRoom': scheduleData.appointmentRoom,
           'date': date.toIso8601String(),
           'time': '${scheduleData.time.hour}:${scheduleData.time.minute}',
-        });
+        };
+
+        log('Salvando agendamento: $schedule');
+
+        try {
+          // Salvar agendamento no Firebase
+          await schedulesRef.child(scheduleKey).set(schedule);
+          log('Agendamento salvo com sucesso: $scheduleKey');
+        } catch (e) {
+          log('Erro ao salvar agendamento para ${date.toIso8601String()}: $e');
+          // Logar o erro, mas não interromper o fluxo
+        }
       }
 
       return Success(nil);
-    } catch (e) {
+    } catch (e, s) {
+      log('Erro ao agendar paciente: $e');
+      log('Stacktrace: $s');
       return Failure(RepositoryException(message: 'Erro ao agendar paciente'));
     }
   }
@@ -52,6 +77,20 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         String? userId,
       }) filter) async {
     try {
+      final adminUser = FirebaseAuth.instance.currentUser;
+      final adminEmail = adminUser?.email;
+      //! Obter de forma segura
+      // TODO: 'Obter a senha do administrador de forma segura';
+      const adminPassword = '123123';
+      //! ------------------------- //
+
+      if (FirebaseAuth.instance.currentUser == null) {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: adminEmail!,
+          password: adminPassword,
+        );
+      }
+
       // Referência ao nó de agendamentos
       DatabaseReference schedulesRef =
           FirebaseDatabase.instance.ref().child('schedules');
@@ -60,6 +99,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
       // Itera pelas datas do filtro
       for (DateTime date in filter.dates) {
+        log('Buscando agendamentos para a data: ${date.toIso8601String()}');
         Query query =
             schedulesRef.orderByChild('date').equalTo(date.toIso8601String());
 
@@ -71,18 +111,31 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         DataSnapshot snapshot = await query.get();
 
         if (snapshot.exists) {
-          // Itera pelos resultados da consulta
+          // Converte os dados do snapshot para Map
           Map<String, dynamic> data =
               Map<String, dynamic>.from(snapshot.value as Map);
+
+          // Filtra manualmente pelo userId, se fornecido
           data.forEach((key, value) {
-            schedules
-                .add(ScheduleModel.fromMap(Map<String, dynamic>.from(value)));
+            Map<String, dynamic> scheduleData =
+                Map<String, dynamic>.from(value);
+
+            if (filter.userId == null ||
+                scheduleData['userId'] == filter.userId) {
+              schedules.add(ScheduleModel.fromMap(scheduleData));
+            }
           });
+
+          log('Encontrados ${schedules.length} agendamentos para a data: ${date.toIso8601String()}');
+        } else {
+          log('Nenhum agendamento encontrado para a data: ${date.toIso8601String()}');
         }
       }
 
       return Success(schedules);
-    } catch (e) {
+    } catch (e, s) {
+      log('Erro ao buscar agendamentos: $e');
+      log('Stacktrace: $s');
       return Failure(
         RepositoryException(
             message: 'Erro ao buscar agendamentos para as datas fornecidas'),

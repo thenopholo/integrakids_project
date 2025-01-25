@@ -21,7 +21,6 @@ import '../../model/user_model.dart';
 import 'schedule_state.dart';
 import 'schedule_vm.dart';
 
-
 class SchedulePage extends ConsumerStatefulWidget {
   const SchedulePage({super.key});
   @override
@@ -87,8 +86,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     final scheduleVM = ref.watch(scheduleVmProvider.notifier);
     final employeeData = switch (userModel) {
       UserModelADM(:final workDays, :final workHours) => (
-          workDays: workDays!,
-          workHours: workHours!,
+          workDays: workDays,
+          workHours: workHours,
         ),
       UserModelEmployee(:final workDays, :final workHours) => (
           workDays: workDays,
@@ -155,10 +154,10 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                   ),
                   TextFormField(
                     controller: tutorsNameEC,
-                    validator:
-                        Validatorless.required('Nome do turo é obrigatório'),
-                    decoration:
-                        const InputDecoration(label: Text('Nome do Tutor')),
+                    validator: Validatorless.required(
+                        'Nome do resonsável é obrigatório'),
+                    decoration: const InputDecoration(
+                        label: Text('Nome do Resonsável')),
                   ),
                   const SizedBox(
                     height: 24,
@@ -170,8 +169,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                     ],
                     controller: tutorsPhoneEC,
                     validator: Validatorless.required('Contato é obrigatório'),
-                    decoration:
-                        const InputDecoration(label: Text('Contato do Tutor')),
+                    decoration: const InputDecoration(
+                        label: Text('Contato do Resonsável')),
                   ),
                   const SizedBox(
                     height: 24,

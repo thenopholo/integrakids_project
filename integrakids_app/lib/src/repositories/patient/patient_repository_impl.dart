@@ -7,14 +7,10 @@ import '../../core/restClient/rest_client.dart';
 import 'patient_repository.dart';
 
 class PatientRepositoryImpl implements PatientRepository {
-  final RestClient restClient;
-
-  PatientRepositoryImpl({required this.restClient});
-
   @override
-  Future<Either<RepositoryException, Nil>> registerPatient(
+  Future<Either<RepositoryException, String>> registerPatient(
       ({
-        int? patientId,
+        String? patientId,
         String? patientName,
         String? tutorsName,
         String? tutorsPhone,
@@ -24,13 +20,16 @@ class PatientRepositoryImpl implements PatientRepository {
       DatabaseReference patientsRef =
           FirebaseDatabase.instance.ref().child('patients');
       String newPatientKey = patientsRef.push().key!;
+
       await patientsRef.child(newPatientKey).set({
+        'id': newPatientKey, // Inclua o 'id' nos dados salvos
         'patientName': patientData.patientName,
         'tutorsName': patientData.tutorsName,
         'tutorsPhone': patientData.tutorsPhone,
         'tutorsComplaint': patientData.tutorsComplaint,
       });
-      return Success(Nil());
+
+      return Success(newPatientKey); // Retorne o novo ID do paciente
     } catch (e) {
       return Failure(
           RepositoryException(message: 'Erro ao registrar paciente'));

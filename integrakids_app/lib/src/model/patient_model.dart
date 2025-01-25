@@ -13,15 +13,15 @@ class PatientModel {
 
   factory PatientModel.fromMap(Map<String, dynamic> json) {
     return PatientModel(
-      id: '0',
-      name: json['patientName'],
+      id: json['id'] ?? '',
+      name: json['patientName'] ?? '',
       tutor: TutorModel(
-        name: json['tutorsName'],
-        phone: json['tutorsPhone'],
+        name: json['tutorsName'] ?? '',
+        phone: json['tutorsPhone'] ?? '',
       ),
     );
   }
-  
+
   Map<String, dynamic> tojson() {
     return {
       'id': id,

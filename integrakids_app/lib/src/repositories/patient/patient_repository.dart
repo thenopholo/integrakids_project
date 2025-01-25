@@ -1,13 +1,12 @@
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
-import '../../core/fp/nil.dart';
 
 
 abstract interface class PatientRepository {
 
-  Future<Either<RepositoryException, Nil>> registerPatient(
+  Future<Either<RepositoryException, String>> registerPatient(
       ({
-        int patientId,
+        String patientId,
         String patientName,
         String tutorsName,
         String tutorsPhone,
