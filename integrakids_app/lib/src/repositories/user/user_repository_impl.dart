@@ -225,17 +225,17 @@ class UserRepositoryImpl implements UserRepository {
         String especialidade,
         String password,
         List<String> workDays,
-        List<int> workHours
+        List<int> workHours,
+        String adminPassword,
       }) userModel) async {
     try {
       log('Iniciando registro do funcionário: ${userModel.email}');
 
       final adminUser = FirebaseAuth.instance.currentUser;
-      final adminEmail = adminUser?.email;
-      // //! Obter de forma segura
-      // TODO: 'Obter a senha do administrador de forma segura';
-      const adminPassword = '123123';
-      // //! ------------------------- //
+      if(adminUser ==null) {
+        throw Exception('Usuário administrador não autenticado');
+      }
+      final adminEmail = adminUser.email;
 
       // Cria o usuário no Firebase Auth
       UserCredential userCredential =
@@ -285,7 +285,7 @@ class UserRepositoryImpl implements UserRepository {
       // Reautenticar como administrador
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: adminEmail!,
-        password: adminPassword,
+        password: userModel.adminPassword,
       );
 
       return Success(nil);

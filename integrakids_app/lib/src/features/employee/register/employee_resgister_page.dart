@@ -36,6 +36,7 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
   final especialidadeEC = TextEditingController();
   final emailEC = TextEditingController();
   final passwordEC = TextEditingController();
+  final adminPasswordEC = TextEditingController();
 
   @override
   void initState() {
@@ -223,6 +224,22 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(
+                                 height: 24,
+                              ),
+                              TextFormField(
+                                onTapOutside: (_) => context.unFocus(),
+                                controller: adminPasswordEC,
+                                obscureText: true,
+                                validator: (value) {
+                                  if(value == null || value.isEmpty) {
+                                    return 'Senha do administrador obrigatória';
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  labelText: 'Senha do Administrador',
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -268,6 +285,8 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                               final especialidade = especialidadeEC.text;
                               final email = emailEC.text;
                               final password = passwordEC.text;
+                              final adminPassword = adminPasswordEC.text;
+                              
 
                               if (isEditing) {
                                 final id = widget.employee!.id;
@@ -278,6 +297,7 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                                   especialidade: especialidade,
                                   email: email,
                                   password: password,
+                                  
                                 );
                               } else {
                                 employeeRegisterVm.register(
@@ -285,6 +305,7 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                                   especialidade: especialidade,
                                   email: email,
                                   password: password,
+                                  adminPassword: adminPassword,
                                 );
                               }
                             } else {

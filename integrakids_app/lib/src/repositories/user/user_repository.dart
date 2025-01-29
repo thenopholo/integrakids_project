@@ -35,6 +35,7 @@ abstract interface class UserRepository {
         String password,
         List<String> workDays,
         List<int> workHours,
+        String adminPassword,
       }) userModel);
 
 Future<Either<RepositoryException, Nil>> editEmployee(

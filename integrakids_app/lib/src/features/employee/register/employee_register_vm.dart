@@ -50,6 +50,7 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
     String? email,
     String? password,
     String? especialidade,
+    required String adminPassword,
   }) async {
     try {
       final EmployeeRegisterState(:registerADM, :workDays, :workHours) = state;
@@ -94,6 +95,7 @@ class EmployeeRegisterVm extends _$EmployeeRegisterVm {
           password: password,
           workDays: workDays,
           workHours: workHours,
+          adminPassword: adminPassword,
         );
 
         resultRegister = await userRepository.registerEmployee(dto);
