@@ -232,10 +232,10 @@ class UserRepositoryImpl implements UserRepository {
 
       final adminUser = FirebaseAuth.instance.currentUser;
       final adminEmail = adminUser?.email;
-      //! Obter de forma segura
+      // //! Obter de forma segura
       // TODO: 'Obter a senha do administrador de forma segura';
       const adminPassword = '123123';
-      //! ------------------------- //
+      // //! ------------------------- //
 
       // Cria o usuário no Firebase Auth
       UserCredential userCredential =
@@ -357,7 +357,14 @@ class UserRepositoryImpl implements UserRepository {
           .child('employees')
           .child(id);
 
+      DatabaseReference userRef = FirebaseDatabase.instance
+          .ref()
+          .child('users')
+          .child(id);
+
       await employeeRef.remove();
+
+      await userRef.remove();
 
       return Success(nil);
     } catch (e) {

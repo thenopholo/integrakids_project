@@ -77,21 +77,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         String? userId,
       }) filter) async {
     try {
-      final adminUser = FirebaseAuth.instance.currentUser;
-      final adminEmail = adminUser?.email;
-      //! Obter de forma segura
-      // TODO: 'Obter a senha do administrador de forma segura';
-      const adminPassword = '123123';
-      //! ------------------------- //
 
       if (FirebaseAuth.instance.currentUser == null) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: adminEmail!,
-          password: adminPassword,
-        );
+        await FirebaseAuth.instance.signInAnonymously();
       }
-
-      // Referência ao nó de agendamentos
+      
       DatabaseReference schedulesRef =
           FirebaseDatabase.instance.ref().child('schedules');
 
