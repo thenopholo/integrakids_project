@@ -207,32 +207,36 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                               ),
                               Offstage(
                                 offstage: isEditing,
-                                child: TextFormField(
-                                  onTapOutside: (_) => context.unFocus(),
-                                  controller: passwordEC,
-                                  validator: registerADM || isEditing
-                                      ? null
-                                      : Validatorless.multiple([
-                                          Validatorless.required(
-                                              'Senha obrigatória'),
-                                          Validatorless.min(6,
-                                              'Senha deve ter no mínimo 6 caracteres'),
-                                        ]),
-                                  obscureText: true,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Senha',
-                                  ),
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      onTapOutside: (_) => context.unFocus(),
+                                      controller: passwordEC,
+                                      validator: registerADM || isEditing
+                                          ? null
+                                          : Validatorless.multiple([
+                                              Validatorless.required(
+                                                  'Senha obrigatória'),
+                                              Validatorless.min(6,
+                                                  'Senha deve ter no mínimo 6 caracteres'),
+                                            ]),
+                                      obscureText: true,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Senha',
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 24,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(
-                                 height: 24,
                               ),
                               TextFormField(
                                 onTapOutside: (_) => context.unFocus(),
                                 controller: adminPasswordEC,
                                 obscureText: true,
                                 validator: (value) {
-                                  if(value == null || value.isEmpty) {
+                                  if (value == null || value.isEmpty) {
                                     return 'Senha do administrador obrigatória';
                                   }
                                 },
@@ -286,7 +290,6 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                               final email = emailEC.text;
                               final password = passwordEC.text;
                               final adminPassword = adminPasswordEC.text;
-                              
 
                               if (isEditing) {
                                 final id = widget.employee!.id;
@@ -297,7 +300,6 @@ class _EmployeeResgisterPageState extends ConsumerState<EmployeeResgisterPage> {
                                   especialidade: especialidade,
                                   email: email,
                                   password: password,
-                                  
                                 );
                               } else {
                                 employeeRegisterVm.register(
