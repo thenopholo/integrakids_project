@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
@@ -47,7 +48,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           'tutorPhone': scheduleData.tutor.phone,
           'appointmentRoom': scheduleData.appointmentRoom,
           'date': date.toIso8601String(),
-          'time': '${scheduleData.time.hour.toString().padLeft(2, '0')}:${scheduleData.time.minute.toString().padLeft(2, '0')}',
+          'time':
+              '${scheduleData.time.hour.toString().padLeft(2, '0')}:${scheduleData.time.minute.toString().padLeft(2, '0')}',
         };
 
         log('Salvando agendamento: $schedule');
@@ -77,48 +79,60 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         String? userId,
       }) filter) async {
     try {
-
       if (FirebaseAuth.instance.currentUser == null) {
         await FirebaseAuth.instance.signInAnonymously();
       }
-      
+
       DatabaseReference schedulesRef =
           FirebaseDatabase.instance.ref().child('schedules');
 
       List<ScheduleModel> schedules = [];
 
-      // Itera pelas datas do filtro
       for (DateTime date in filter.dates) {
-        log('Buscando agendamentos para a data: ${date.toIso8601String()}');
-        Query query =
-            schedulesRef.orderByChild('date').equalTo(date.toIso8601String());
+        final startOfDay = DateTime(date.year, date.month, date.day, 0, 0, 0);
+        final endOfDay = startOfDay.add(const Duration(days: 1));
+        log('Buscando agendamentos entre: ${startOfDay.toIso8601String()} e ${endOfDay.toIso8601String()}');
 
-        // Adiciona um filtro por userId, caso necessário
+        Query query;
         if (filter.userId != null) {
-          query = query.orderByChild('userId').equalTo(filter.userId);
+          query = schedulesRef.orderByChild('userId').equalTo(filter.userId);
+        } else {
+          query = schedulesRef
+              .orderByChild('date')
+              .startAt(startOfDay.toIso8601String())
+              .endAt(endOfDay.toIso8601String());
         }
 
         DataSnapshot snapshot = await query.get();
 
         if (snapshot.exists) {
+          log('Dados no snapshot: ${snapshot.value}');
+
           // Converte os dados do snapshot para Map
           Map<String, dynamic> data =
               Map<String, dynamic>.from(snapshot.value as Map);
 
-          // Filtra manualmente pelo userId, se fornecido
           data.forEach((key, value) {
-            Map<String, dynamic> scheduleData =
-                Map<String, dynamic>.from(value);
+            try {
+              Map<String, dynamic> scheduleData =
+                  Map<String, dynamic>.from(value);
+              final scheduleDate = DateTime.parse(scheduleData['date']);
 
-            if (filter.userId == null ||
-                scheduleData['userId'] == filter.userId) {
-              schedules.add(ScheduleModel.fromMap(scheduleData));
+              if ((filter.userId == null ||
+                      scheduleData['userId'] == filter.userId) &&
+                  scheduleDate.isAfter(startOfDay) &&
+                  scheduleDate.isBefore(endOfDay)) {
+                schedules.add(ScheduleModel.fromMap(scheduleData));
+                log('Agendamento processado com sucesso: ${scheduleData['date']}');
+              }
+            } catch (e) {
+              log('Erro ao converter agendamento: $e');
             }
           });
 
-          log('Encontrados ${schedules.length} agendamentos para a data: ${date.toIso8601String()}');
+          log('Total de agendamentos carregados: ${schedules.length}');
         } else {
-          log('Nenhum agendamento encontrado para a data: ${date.toIso8601String()}');
+          log('Nenhum agendamento encontrado entre: ${startOfDay.toIso8601String()} e ${endOfDay.toIso8601String()}');
         }
       }
 

@@ -65,7 +65,7 @@ class _EmployeeSchedulePageState extends ConsumerState<EmployeeSchedulePage> {
             data: (schedules) {
               return Expanded(
                 child: SfCalendar(
-                  view: CalendarView.workWeek,
+                  view: CalendarView.timelineWeek,
                   allowAppointmentResize: true,
                   allowViewNavigation: true,
                   showNavigationArrow: true,
