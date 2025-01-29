@@ -47,7 +47,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           'tutorPhone': scheduleData.tutor.phone,
           'appointmentRoom': scheduleData.appointmentRoom,
           'date': date.toIso8601String(),
-          'time': '${scheduleData.time.hour}:${scheduleData.time.minute}',
+          'time': '${scheduleData.time.hour.toString().padLeft(2, '0')}:${scheduleData.time.minute.toString().padLeft(2, '0')}',
         };
 
         log('Salvando agendamento: $schedule');

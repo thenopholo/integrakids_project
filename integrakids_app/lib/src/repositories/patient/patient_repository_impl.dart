@@ -2,8 +2,6 @@ import 'package:firebase_database/firebase_database.dart';
 
 import '../../core/exceptions/repository_exception.dart';
 import '../../core/fp/either.dart';
-import '../../core/fp/nil.dart';
-import '../../core/restClient/rest_client.dart';
 import 'patient_repository.dart';
 
 class PatientRepositoryImpl implements PatientRepository {

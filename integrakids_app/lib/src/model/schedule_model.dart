@@ -23,42 +23,35 @@ class ScheduleModel {
     required this.minute,
   });
   factory ScheduleModel.fromMap(Map<String, dynamic> json) {
-    try {
-      int hour = json['hour'] ?? 0;
-      int minute = json['minute'] ?? 0;
+  try {
+    final timeParts = (json['time'] as String).split(':');
+    final hour = int.parse(timeParts[0]);
+    final minute = int.parse(timeParts.length > 1 ? timeParts[1] : '0');
 
-      return ScheduleModel(
-        id: json['id'] ?? 0,
-        clinicaId: json['clinica_id'] ?? 0,
-        userId: json['user_id'] ?? 0,
-        patient: PatientModel(
-          id: '0',
-          name: json['patient_name'] ?? 'Desconhecido',
-          tutor: TutorModel(
-            name: json['tutor_name'] ?? 'Sem Tutor',
-            phone: json['tutor_phone'] ?? 'Sem Telefone',
-          ),
-        ),
+    return ScheduleModel(
+      id: json['id'] ?? '',
+      clinicaId: json['clinicaId'] ?? '',
+      userId: json['userId'] ?? '',
+      patient: PatientModel(
+        id: json['patientId'] ?? '',
+        name: json['patientName'] ?? 'Desconhecido',
         tutor: TutorModel(
-          name: json['tutor_name'] ?? 'Sem Tutor',
-          phone: json['tutor_phone'] ?? 'Sem Telefone',
+          name: json['tutorName'] ?? 'Sem Tutor',
+          phone: json['tutorPhone'] ?? 'Sem Telefone',
         ),
-        appointmentRoom: json['appointment_room'] ?? '',
-        dates: (json['dates'] as List<dynamic>).map((dateString) {
-          DateTime baseDate = DateTime.parse(dateString as String);
-          return DateTime(
-            baseDate.year,
-            baseDate.month,
-            baseDate.day,
-            hour,
-            minute,
-          );
-        }).toList(),
-        hour: hour,
-        minute: minute,
-      );
-    } catch (e) {
-      throw ArgumentError('Erro ao converter JSON para ScheduleModel: $e');
-    }
+      ),
+      tutor: TutorModel(
+        name: json['tutorName'] ?? 'Sem Tutor',
+        phone: json['tutorPhone'] ?? 'Sem Telefone',
+      ),
+      appointmentRoom: json['appointmentRoom'] ?? '',
+      dates: [DateTime.parse(json['date'])],
+      hour: hour,
+      minute: minute,
+    );
+  } catch (e) {
+    throw ArgumentError('Erro ao converter JSON para ScheduleModel: $e');
   }
+}
+
 }
