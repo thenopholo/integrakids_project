@@ -232,7 +232,7 @@ class UserRepositoryImpl implements UserRepository {
       log('Iniciando registro do funcionário: ${userModel.email}');
 
       final adminUser = FirebaseAuth.instance.currentUser;
-      if(adminUser ==null) {
+      if (adminUser == null) {
         throw Exception('Usuário administrador não autenticado');
       }
       final adminEmail = adminUser.email;
@@ -325,6 +325,11 @@ class UserRepositoryImpl implements UserRepository {
           .child('employees')
           .child(userModel.id.toString());
 
+      DatabaseReference userRef = FirebaseDatabase.instance
+          .ref()
+          .child('users')
+          .child(userModel.id.toString());
+
       final data = {
         'name': userModel.name,
         'especialidade': userModel.especialidade,
@@ -338,6 +343,7 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       await employeeRef.update(data);
+      await userRef.update(data);
 
       return Success(nil);
     } catch (e) {
@@ -357,10 +363,8 @@ class UserRepositoryImpl implements UserRepository {
           .child('employees')
           .child(id);
 
-      DatabaseReference userRef = FirebaseDatabase.instance
-          .ref()
-          .child('users')
-          .child(id);
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child('users').child(id);
 
       await employeeRef.remove();
 
